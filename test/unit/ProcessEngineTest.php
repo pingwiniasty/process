@@ -7,6 +7,8 @@ use KoolKode\Expression\ExpressionContextFactory;
 use KoolKode\Expression\Parser\ExpressionLexer;
 use KoolKode\Expression\Parser\ExpressionParser;
 use KoolKode\Process\Behavior\CallbackBehavior;
+use KoolKode\Process\Behavior\ExclusiveChoiceBehavior;
+use KoolKode\Process\Behavior\InclusiveChoiceBehavior;
 use KoolKode\Process\Behavior\SyncBehavior;
 use KoolKode\Process\Behavior\WaitStateBehavior;
 
@@ -256,11 +258,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider provideXorTestData
 	 */
-	public function testExclusiveGatewayForkAndJoin($amount, $expected)
+	public function testExclusiveChoiceForkAndJoin($amount, $expected)
 	{
-		return $this->markTestSkipped('Requires custom gateway behavior');
-		
-		$builder = new ProcessBuilder('Exclusive Gateway Fork and Join');
+		$builder = new ProcessBuilder('Exclusive Fork and Join Test');
 		
 		$builder->node('start')->initial();
 		$builder->transition('t1', 'start', 'amount');
@@ -268,7 +268,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('amount')->behavior(new WaitStateBehavior());
 		$builder->transition('t2', 'amount', 'choice');
 		
-		$builder->node('choice')->behavior(new ExclusiveGatewayBehavior('t4'));
+		$builder->node('choice')->behavior(new ExclusiveChoiceBehavior('t4'));
 		$builder->transition('t3', 'choice', 'discount')
 				->trigger(new ExpressionTrigger($this->exp('#{ amount >= 200 }')));
 		$builder->transition('t4', 'choice', 'join');
@@ -323,11 +323,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider provideInclusiveTestData
 	 */
-	public function testInclusiveGateway($num, $threshold, $result)
+	public function testInclusiveChoice($num, $threshold, $result)
 	{
-		return $this->markTestSkipped('Requires custom gateway behavior');
-		
-		$builder = new ProcessBuilder('Inclusive Gateway Fork');
+		$builder = new ProcessBuilder('Inclusive Choice Fork Test');
 		
 		$builder->node('start')->initial();
 		$builder->transition('t1', 'start', 'input');
@@ -335,7 +333,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('input')->behavior(new WaitStateBehavior());
 		$builder->transition('t2', 'input', 'gate');
 		
-		$builder->node('gate')->behavior(new InclusiveGatewayBehavior('t5'));
+		$builder->node('gate')->behavior(new InclusiveChoiceBehavior('t5'));
 		$builder->transition('t3', 'gate', 'A')
 				->trigger(new ExpressionTrigger($this->exp('#{num > threshold}')));
 		$builder->transition('t4', 'gate', 'B')
@@ -362,11 +360,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($result, $process->getVariable('result'));
 	}
 	
-	public function testInclusiveGatewayForkAndJoin()
+	public function testInclusiveForkAndJoin()
 	{
-		return $this->markTestSkipped('Requires custom gateway behavior');
-		
-		$builder = new ProcessBuilder('Inclusive Gateway Fork and Join');
+		$builder = new ProcessBuilder('Inclusive Fork and Join Test');
 		
 		$builder->node('start')->initial();
 		$builder->transition('t0', 'start', 'X');
@@ -374,7 +370,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('X')->behavior(new WaitStateBehavior());
 		$builder->transition('t1', 'X', 'fork');
 		
-		$builder->node('fork')->behavior(new InclusiveGatewayBehavior('t2'));
+		$builder->node('fork')->behavior(new InclusiveChoiceBehavior('t2'));
 		$builder->transition('t2', 'fork', 'A');
 		$builder->transition('t3', 'fork', 'B')
 				->trigger(new ExpressionTrigger($this->exp('#{ num > 5 }')));
@@ -390,7 +386,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('C')->behavior(new WaitStateBehavior());
 		$builder->transition('t7', 'C', 'join');
 		
-		$builder->node('join')->behavior(new InclusiveGatewayBehavior());
+		$builder->node('join')->behavior(new InclusiveChoiceBehavior());
 		$builder->transition('t8', 'join', 'end');
 		
 		$builder->node('end');
@@ -414,9 +410,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$execution->setVariable('number', pow($execution->getVariable('number', 2), 2));
 	}
 	
-	public function testParallelGatewayForkWithEnd()
+	public function testParallelForkWithEnd()
 	{
-		$builder = new ProcessBuilder('Parallel Gateway Fork With End');
+		$builder = new ProcessBuilder('Parallel Fork With End Test');
 		
 		$builder->node('start')->initial();
 		$builder->transition('t1', 'start', 'receiveOffer');
@@ -451,7 +447,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(256, $process->getVariable('number'));
 	}
 	
-	public function testParallelGatewayForkAndJoin()
+	public function testParallelForkAndJoin()
 	{
 		$builder = new ProcessBuilder('Parallel Fork and Join');
 		
@@ -505,7 +501,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(1, $counter);
 	}
 	
-	public function testMultiParallelExample()
+	public function testMultiParallelBehavior()
 	{
 		$builder = new ProcessBuilder('Multiple Parallel Forks and Joins');
 		
@@ -599,8 +595,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 	
 	public function testExclusiveParallelMerge()
 	{
-		return $this->markTestSkipped('Requires custom gateway behavior');
-		
 		$builder = new ProcessBuilder('Merging into a parallel branch using XOR');
 		
 		$builder->node('start')->initial();
@@ -628,7 +622,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('D');
 		$builder->transition('t9', 'D', 'x2');
 		
-		$builder->node('x2')->behavior(new ExclusiveGatewayBehavior('t13'));
+		$builder->node('x2')->behavior(new ExclusiveChoiceBehavior('t13'));
 		$builder->transition('t10', 'x2', 'p3')
 				->trigger(new ExpressionTrigger($this->exp('#{ reject }')));
 		$builder->transition('t13', 'x2', 'E');
