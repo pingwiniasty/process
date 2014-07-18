@@ -1,6 +1,6 @@
 {
 	"name" : "koolkode/process",
-	"description" : "KoolKode Virtual Process Execution Machine",
+	"description" : "KoolKode Process Virtual Machine",
 	"keywords" : [
 		"koolkode",
 		"process"
