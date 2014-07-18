@@ -19,7 +19,7 @@ class TestEngine extends AbstractEngine
 	
 	public function registerExecution(Execution $execution)
 	{
-		$this->executions[(string)$execution->getId()] = new ExecutionInfo($execution);
+		$this->executions[(string)$execution->getId()] = $execution;
 	}
 	
 	public function startProcess(ProcessDefinition $definition, array $variables = [], callable $factory = NULL)
