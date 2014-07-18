@@ -11,89 +11,44 @@
 
 namespace KoolKode\Process;
 
-use KoolKode\Context\ContainerInterface;
-use KoolKode\Event\EventDispatcher;
 use KoolKode\Event\EventDispatcherInterface;
-use KoolKode\Expression\ExpressionContextFactory;
 use KoolKode\Expression\ExpressionContextFactoryInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerTrait;
 
 abstract class AbstractEngine implements EngineInterface
 {
+	use LoggerTrait;
+	
 	protected $commands = [];
 	
-	protected $container;
 	protected $logger;
 	protected $eventDispatcher;
+	
 	protected $expressionContextFactory;
 	
-	public function __construct(ContainerInterface $container)
+	public function __construct(EventDispatcherInterface $dispatcher, ExpressionContextFactoryInterface $factory, LoggerInterface $logger = NULL)
 	{
-		$this->container = $container;
-	}
-	
-	public function getContainer()
-	{
-		return $this->container;
-	}
-	
-	public function error($message, array $context = NULL)
-	{
-		if($this->logger !== NULL)
-		{
-			$this->logger->error($message, $context);
-		}
-	}
-	
-	public function warning($message, array $context = NULL)
-	{
-		if($this->logger !== NULL)
-		{
-			$this->logger->warning($message, $context);
-		}
-	}
-	
-	public function info($message, array $context = NULL)
-	{
-		if($this->logger !== NULL)
-		{
-			$this->logger->info($message, $context);
-		}
-	}
-	
-	public function debug($message, array $context = NULL)
-	{
-		if($this->logger !== NULL)
-		{
-			$this->logger->debug($message, $context);
-		}
-	}
-	
-	public function setLogger(LoggerInterface $logger)
-	{
+		$this->eventDispatcher = $dispatcher;
+		$this->expressionContextFactory = $factory;
 		$this->logger = $logger;
+	}
+	
+	public function log($level, $message, array $context = NULL)
+	{
+		if($this->logger !== NULL)
+		{
+			$this->logger->log($level, $message, $context);
+		}
 	}
 	
 	public function notify($event)
 	{
-		if($this->eventDispatcher !== NULL)
-		{
-			$this->eventDispatcher->notify($event);
-		}
-	}
-	
-	public function setEventDispatcher(EventDispatcherInterface $dispatcher)
-	{
-		$this->eventDispatcher = $dispatcher;
+		$this->eventDispatcher->notify($event);
 	}
 	
 	public function getExpressionContextFactory()
 	{
-		if($this->expressionContextFactory === NULL)
-		{
-			return new ExpressionContextFactory();
-		}
-		
 		return $this->expressionContextFactory;
 	}
 	

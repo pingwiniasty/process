@@ -11,7 +11,6 @@
 
 namespace KoolKode\Process;
 
-use KoolKode\Context\ContainerInterface;
 use KoolKode\Util\UUID;
 
 class TestEngine extends AbstractEngine

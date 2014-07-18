@@ -9,23 +9,13 @@
 * file that was distributed with this source code.
 */
 
-// FIXME: Remove getters and coupling... needs some work and working unit tests!
-
 namespace KoolKode\Process;
 
-interface EngineInterface
+use Psr\Log\LoggerInterface;
+
+interface EngineInterface extends LoggerInterface
 {
-	public function getContainer();
-	
 	public function notify($event);
-	
-	public function error($message, array $context = NULL);
-	
-	public function warning($message, array $context = NULL);
-	
-	public function info($message, array $context = NULL);
-	
-	public function debug($message, array $context = NULL);
 	
 	public function getExpressionContextFactory();
 	

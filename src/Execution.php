@@ -11,12 +11,10 @@
 
 namespace KoolKode\Process;
 
-use KoolKode\Event\EventDispatcherInterface;
-use KoolKode\Util\UUID;
-
 use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;
 use KoolKode\Process\Event\TakeTransitionEvent;
+use KoolKode\Util\UUID;
 
 class Execution
 {
