@@ -39,10 +39,6 @@ class ExpressionTrigger implements TriggerInterface
 	
 	public function isEnabled(Execution $execution)
 	{
-		$result = call_user_func($this->expression, $execution->getExpressionContext()) ? true : false;
-		
-// 		printf(">> EXP \"%s\" = %s\n", $this->expression, var_export($result, true));
-		
-		return $result;
+		return call_user_func($this->expression, $execution->getExpressionContext()) ? true : false;
 	}
 }

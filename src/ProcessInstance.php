@@ -22,7 +22,8 @@ class ProcessInstance extends Execution
 		$this->processDefinition = $processDefinition;
 		$this->state = self::STATE_SCOPE | self::STATE_ACTIVE;
 		
-// 		printf("\nSTART PROCESS: \"%s\"\n", $processDefinition->getTitle());
+		$engine->debug('Starting process {0}', [$processDefinition->getTitle()]);
+		$engine->debug('Created execution {0}', [(string)$this]);
 	}
 	
 	public function __toString()

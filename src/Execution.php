@@ -46,7 +46,7 @@ class Execution
 		$this->processDefinition = $processDefinition;
 		$this->parentExecution = $parentExecution;
 		
-// 		printf("INSTANTIATE: %s\n", $this);
+		$engine->debug('Created execution {0}', [(string)$this]);
 	}
 	
 	public function __toString()
@@ -57,13 +57,6 @@ class Execution
 	public function getId()
 	{
 		return $this->id;
-	}
-	
-	public function resolveExpressionValue($name, & $isResolved, $isPath)
-	{
-		$isResolved = true;
-		
-		return $this->getVariable($name, NULL);
 	}
 	
 	public function getEngine()
@@ -85,7 +78,7 @@ class Execution
 	{
 		$this->state |= self::STATE_TERMINATE;
 		
-// 		printf("TERMINATE: %s\n", $this);
+		$this->engine->debug('Terminate execution {0}', [(string)$this]);
 		
 		foreach($this->childExecutions as $execution)
 		{
@@ -263,9 +256,16 @@ class Execution
 	{
 		if($this->state & self::STATE_SCOPE)
 		{
-// 			printf(">> SET VAR %s = %s\n", $name, var_export($value, true));
-			
-			$this->variables[$name] = $value;
+			if($value === NULL)
+			{
+				$this->removeVariable($name);
+			}
+			else
+			{
+				$this->variables[$name] = $value;
+				
+				$this->engine->debug('Set variable {0} in {1}', [(string)$name, (string)$this]);
+			}
 		}
 		else
 		{
@@ -278,6 +278,8 @@ class Execution
 		if($this->state & self::STATE_SCOPE)
 		{
 			unset($this->variables[$name]);
+			
+			$this->engine->debug('Removed variable {0} from {1}', [(string)$name, (string)$this]);
 		}
 		else
 		{
@@ -332,10 +334,10 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->node = $node;
 			
-			$activity = $this->node->getBehavior();
-			
-// 			printf("ENTER NODE [%s]: %s\n", $this, $this->node);
+			$this->engine->debug('{0} entering node {1}', [(string)$this, (string)$this->node]);
 			$this->engine->notify(new EnterNodeEvent($this->node, $this));
+			
+			$activity = $this->node->getBehavior();
 			
 			if($activity instanceof ActivityInterface)
 			{	
@@ -354,7 +356,7 @@ class Execution
 		$this->timestamp = microtime(true);
 		$this->state |= self::STATE_WAIT;
 		
-// 		printf("ENTER WAIT STATE: %s\n", $this);
+		$this->engine->debug('{0} enetered wait state', [(string)$this]);
 	}
 	
 	public function signal($signal = NULL, array $variables = [])
@@ -374,7 +376,7 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->setState(self::STATE_WAIT, false);
 			
-// 			printf("SIGNAL [%s]: %s\n", $this, var_export($signal, true));
+			$this->engine->debug('Signaling {0} to {1}', [$signal, (string)$this]);
 			
 			$activity = $this->node->getBehavior();
 			
@@ -446,10 +448,10 @@ class Execution
 				return;
 			}
 			
-// 			printf("LEAVE NODE [%s]: %s\n", $this, $this->node);
+			$this->engine->debug('{0} leaves node {1}', [(string)$this, (string)$this->node]);
 			$this->engine->notify(new LeaveNodeEvent($this->node, $this));
 			
-// 			printf("TAKE TRANSITION [%s]: %s\n", $this, $trans);
+			$this->engine->debug('{0} taking transition {1}', [(string)$this, (string)$trans]);
 			$this->engine->notify(new TakeTransitionEvent($trans, $this));
 			
 			$this->timestamp = microtime(true);
@@ -535,15 +537,17 @@ class Execution
 				return $execution !== $root;
 			});
 			
-// 			printf(">> OUT: %s ACTIVE: %u MERGE: %s\n", count($transitions), count($active), $merge ? 'yes' : 'no');
-			
 			if(count($transitions) == 1 && empty($active) && $merge)
 			{
+				$terminated = 0;
+				
 				foreach($recycle as $rec)
 				{
 					if(!$rec->isTerminated())
 					{
 						$rec->terminate();
+						
+						$terminated++;
 					}
 				}
 					
@@ -551,8 +555,8 @@ class Execution
 				$this->setState(self::STATE_CONCURRENT, false);
 				$root->setActive(true);
 					
-				// 			printf(">> MERGE INTO: %s\n", $root);
-					
+				$this->engine->debug(sprintf('Merged %u concurrent executions into {0}', $terminated), [(string)$root]);
+				
 				return $root->take(array_shift($transitions));
 			}
 		
