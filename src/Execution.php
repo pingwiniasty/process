@@ -46,7 +46,7 @@ class Execution
 		$this->processDefinition = $processDefinition;
 		$this->parentExecution = $parentExecution;
 		
-		$engine->debug('Created execution {0}', [(string)$this]);
+		$engine->debug('Created {0}', [(string)$this]);
 	}
 	
 	public function __toString()
@@ -78,7 +78,7 @@ class Execution
 	{
 		$this->state |= self::STATE_TERMINATE;
 		
-		$this->engine->debug('Terminate execution {0}', [(string)$this]);
+		$this->engine->debug('Terminate {0}', [(string)$this]);
 		
 		foreach($this->childExecutions as $execution)
 		{
@@ -356,7 +356,7 @@ class Execution
 		$this->timestamp = microtime(true);
 		$this->state |= self::STATE_WAIT;
 		
-		$this->engine->debug('{0} enetered wait state', [(string)$this]);
+		$this->engine->debug('{0} entered wait state', [(string)$this]);
 	}
 	
 	public function signal($signal = NULL, array $variables = [])
