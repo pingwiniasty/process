@@ -18,7 +18,7 @@ use KoolKode\Process\Execution;
  * Synchronizes concurrent executions, requires an inactive concurrent execution to
  * be present at every incoming transition.
  * 
- * @author Martin Schr�der
+ * @author Martin Schröder
  */
 class SyncBehavior implements ActivityInterface
 {
