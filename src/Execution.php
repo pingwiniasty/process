@@ -334,7 +334,7 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->node = $node;
 			
-			$this->engine->debug('{0} entering node {1}', [(string)$this, (string)$this->node]);
+			$this->engine->debug('{0} entering {1}', [(string)$this, (string)$this->node]);
 			$this->engine->notify(new EnterNodeEvent($this->node, $this));
 			
 			$activity = $this->node->getBehavior();
@@ -448,10 +448,10 @@ class Execution
 				return;
 			}
 			
-			$this->engine->debug('{0} leaves node {1}', [(string)$this, (string)$this->node]);
+			$this->engine->debug('{0} leaves {1}', [(string)$this, (string)$this->node]);
 			$this->engine->notify(new LeaveNodeEvent($this->node, $this));
 			
-			$this->engine->debug('{0} taking transition {1}', [(string)$this, (string)$trans]);
+			$this->engine->debug('{0} transitions to {1}', [(string)$this, (string)$trans]);
 			$this->engine->notify(new TakeTransitionEvent($trans, $this));
 			
 			$this->timestamp = microtime(true);
