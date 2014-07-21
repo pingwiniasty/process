@@ -13,6 +13,11 @@ namespace KoolKode\Process;
 
 use KoolKode\Util\UUID;
 
+/**
+ * Process definitions are directed graphs consisting of nodes and transitions.
+ * 
+ * @author Martin Schröder
+ */
 class ProcessDefinition
 {
 	protected $id;

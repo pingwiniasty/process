@@ -13,6 +13,11 @@ namespace KoolKode\Process;
 
 use KoolKode\Expression\ExpressionInterface;
 
+/**
+ * Implements a transition trigger backed by an expression.
+ * 
+ * @author Martin Schröder
+ */
 class ExpressionTrigger implements TriggerInterface
 {
 	protected $expression;

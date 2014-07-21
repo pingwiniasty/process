@@ -11,7 +11,17 @@
 
 namespace KoolKode\Process;
 
+/**
+ * An activity is used to model the behavior of a node within a process.
+ * 
+ * @author Martin Schröder
+ */
 interface ActivityInterface
 {
+	/**
+	 * Execute the connected behavior in the context of the given execution.
+	 * 
+	 * @param Execution $execution
+	 */
 	public function execute(Execution $execution);
 }

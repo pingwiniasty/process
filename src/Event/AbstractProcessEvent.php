@@ -12,13 +12,19 @@
 namespace KoolKode\Process\Event;
 
 use KoolKode\Process\Execution;
+use KoolKode\Process\Item;
 
+/**
+ * Base class for any kind of process-related event.
+ * 
+ * @author Martin Schröder
+ */
 abstract class AbstractProcessEvent
 {
 	protected $source;
 	protected $execution;
 	
-	public function __construct($source, Execution $execution)
+	public function __construct(Item $source, Execution $execution)
 	{
 		$this->source = $source;
 		$this->execution = $execution;

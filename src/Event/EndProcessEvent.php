@@ -11,4 +11,9 @@
 
 namespace KoolKode\Process\Event;
 
+/**
+ * Is triggered when a process instance has been terminated.
+ * 
+ * @author Martin Schröder
+ */
 class EndProcessEvent extends AbstractProcessEvent { }

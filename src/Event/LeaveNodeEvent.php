@@ -11,4 +11,9 @@
 
 namespace KoolKode\Process\Event;
 
+/**
+ * Is triggered whenever an execution leaves a node.
+ * 
+ * @author Martin Schröder
+ */
 class LeaveNodeEvent extends AbstractProcessEvent { }

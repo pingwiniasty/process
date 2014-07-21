@@ -14,6 +14,11 @@ namespace KoolKode\Process\Behavior;
 use KoolKode\Process\ActivityInterface;
 use KoolKode\Process\Execution;
 
+/**
+ * Turns a node into an exclusive fork / join with an optional default transition.
+ * 
+ * @author Martin Schröder
+ */
 class ExclusiveChoiceBehavior implements ActivityInterface
 {
 	protected $defaultTransition;

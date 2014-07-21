@@ -12,7 +12,13 @@
 namespace KoolKode\Process;
 
 use KoolKode\Util\UUID;
+use KoolKode\Process\Event\StartProcessEvent;
 
+/**
+ * Provides a very basic in-memory process engine that can be used for unit testing etc.
+ * 
+ * @author Martin Schröder
+ */
 class TestEngine extends AbstractEngine
 {
 	protected $executions = [];
@@ -31,6 +37,8 @@ class TestEngine extends AbstractEngine
 			throw new \RuntimeException(sprintf('Process "%s" does not declare exactly 1 start node', $definition->getTitle()));
 		}
 		
+		$startNode = array_shift($initial);
+		
 		if($factory === NULL)
 		{
 			$process = new ProcessInstance(UUID::createRandom(), $this, $definition);
@@ -40,7 +48,7 @@ class TestEngine extends AbstractEngine
 			$process = $factory(UUID::createRandom(), $this, $definition);
 		}
 		
-		$process->execute(array_shift($initial));
+		$process->execute($startNode);
 		
 		foreach($variables as $k => $v)
 		{
@@ -48,6 +56,8 @@ class TestEngine extends AbstractEngine
 		}
 		
 		$this->registerExecution($process);
+		
+		$this->notify(new StartProcessEvent($startNode, $process));
 		
 		while($this->executeNextCommand());
 		

@@ -11,4 +11,9 @@
 
 namespace KoolKode\Process\Event;
 
+/**
+ * Is triggered whenever an execution takes a transition.
+ * 
+ * @author Martin Schröder
+ */
 class TakeTransitionEvent extends AbstractProcessEvent { }

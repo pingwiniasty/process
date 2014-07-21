@@ -11,11 +11,17 @@
 
 namespace KoolKode\Process;
 
+use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;
 use KoolKode\Process\Event\TakeTransitionEvent;
 use KoolKode\Util\UUID;
 
+/**
+ * A path of execution holds state and can be thought of as a token in process diagram or Petri-Net.
+ * 
+ * @author Martin Schröder
+ */
 class Execution
 {
 	const STATE_NONE = 0;
@@ -54,26 +60,49 @@ class Execution
 		return sprintf('execution(%s)', $this->id);
 	}
 
+	/**
+	 * Get the globally unique identifier of this execution.
+	 * 
+	 * @return UUID
+	 */
 	public function getId()
 	{
 		return $this->id;
 	}
 	
+	/**
+	 * Get the process engine being used to automate the execution.
+	 * 
+	 * @return EngineInterface
+	 */
 	public function getEngine()
 	{
 		return $this->engine;
 	}
 	
+	/**
+	 * Create an expression context bound to this execution.
+	 * 
+	 * @return ExpressionContextInterface
+	 */
 	public function getExpressionContext()
 	{
 		return $this->engine->getExpressionContextFactory()->createContext($this);
 	}
 	
+	/**
+	 * Check if the path of execution has been terminated.
+	 * 
+	 * @return boolean
+	 */
 	public function isTerminated()
 	{
 		return 0 != ($this->state & self::STATE_TERMINATE);
 	}
 	
+	/**
+	 * Terminate this path of execution, will also terminate all child executions.
+	 */
 	public function terminate()
 	{
 		$this->state |= self::STATE_TERMINATE;
@@ -94,6 +123,11 @@ class Execution
 		}
 	}
 	
+	/**
+	 * Is being used to notify a parent execution whenever a child execution has been terminated.
+	 * 
+	 * @param Execution $execution
+	 */
 	protected function childExecutionTerminated(Execution $execution)
 	{
 		foreach($this->childExecutions as $index => $exec)
@@ -107,46 +141,93 @@ class Execution
 		}
 	}
 	
+	/**
+	 * Get the internal state of this execution.
+	 * 
+	 * @return string
+	 */
 	public function getState()
 	{
 		return $this->state;
 	}
 	
+	/**
+	 * Check if the path of execution is active.
+	 * 
+	 * @return boolean
+	 */
 	public function isActive()
 	{
 		return 0 != ($this->state & self::STATE_ACTIVE);
 	}
 	
+	/**
+	 * Toggle active flag of this path of execution.
+	 * 
+	 * @param boolean $active
+	 */
 	public function setActive($active)
 	{
 		$this->setState(self::STATE_ACTIVE, $active);
 	}
 	
+	/**
+	 * Get microtime timestamp of the last activity being performed within this path
+	 * of execution.
+	 * 
+	 * @return float
+	 */
 	public function getTimestamp()
 	{
 		return $this->timestamp;
 	}
 	
+	/**
+	 * Check if this path of execution is a concurrent execution.
+	 * 
+	 * @return boolean
+	 */
 	public function isConcurrent()
 	{
 		return 0 != ($this->state & self::STATE_CONCURRENT);
 	}
 	
+	/**
+	 * Check if this execution is waiting for a signal.
+	 * 
+	 * @return boolean
+	 */
 	public function isWaiting()
 	{
 		return 0 != ($this->state & self::STATE_WAIT);
 	}
 	
+	/**
+	 * Check if this execution is a scope for local variables.
+	 * 
+	 * @return boolean
+	 */
 	public function isScope()
 	{
 		return 0 != ($this->state & self::STATE_SCOPE);
 	}
 	
+	/**
+	 * Get the parent execution of this execution.
+	 * 
+	 * @return Execution or NULL if this execution is a root execution.
+	 */
 	public function getParentExecution()
 	{
 		return $this->parentExecution;
 	}
 	
+	/**
+	 * Create a new child execution and register it with the process engine.
+	 * 
+	 * @param boolean $concurrent
+	 * @return Execution
+	 */
 	public function createExecution($concurrent = true)
 	{
 		$execution = new Execution(UUID::createRandom(), $this->engine, $this->processDefinition, $this);
@@ -162,6 +243,12 @@ class Execution
 		return $this->childExecutions[] = $execution;
 	}
 	
+	/**
+	 * Find all child executions.
+	 * 
+	 * @param Node $node Optional filter, return only executions that have arrived at the given node.
+	 * @return array<Execution> All matching child executions.
+	 */
 	public function findChildExecutions(Node $node = NULL)
 	{
 		if($node === NULL)
@@ -174,6 +261,12 @@ class Execution
 		});
 	}
 	
+	/**
+	 * Find all concurrent executions (e.g. any execution runs "in parallel" to this execution).
+	 *
+	 * @param Node $node Optional filter, return only executions that have arrived at the given node.
+	 * @return array<Execution> All matching concurrent executions.
+	 */
 	public function findConcurrentExecutions(Node $node = NULL)
 	{
 		if($this->parentExecution === NULL)
@@ -186,6 +279,12 @@ class Execution
 		});
 	}
 	
+	/**
+	 * Find all inactive concurrent executions (e.g. any execution runs "in parallel" to this execution).
+	 *
+	 * @param Node $node Optional filter, return only executions that have arrived at the given node.
+	 * @return array<Execution> All matching inactive concurrent executions.
+	 */
 	public function findInactiveConcurrentExecutions(Node $node = NULL)
 	{
 		if($this->parentExecution === NULL)
@@ -198,6 +297,12 @@ class Execution
 		});
 	}
 	
+	/**
+	 * Find all waiting child executions.
+	 * 
+	 * @param Node $node Optional filter, return only executions that have arrived at the given node.
+	 * @return array<Execution> All matching waiting child executions.
+	 */
 	public function findWaitingExecutions(Node $node = NULL)
 	{
 		return array_filter($this->findChildExecutions($node), function(Execution $execution) {
@@ -205,6 +310,11 @@ class Execution
 		});
 	}
 	
+	/**
+	 * Get the process instance (that is the root-level execution).
+	 * 
+	 * @return ProcessInstance
+	 */
 	public function getProcessInstance()
 	{
 		if($this->parentExecution === NULL)
@@ -215,6 +325,12 @@ class Execution
 		return $this->parentExecution->getProcessInstance();
 	}
 	
+	/**
+	 * Check if the given variable is set in the current scope.
+	 * 
+	 * @param string $name
+	 * @return boolean
+	 */
 	public function hasVariable($name)
 	{
 		if($this->state & self::STATE_SCOPE)
@@ -225,6 +341,15 @@ class Execution
 		return $this->parentExecution->hasVariable($name);
 	}
 	
+	/**
+	 * Get the value of the given variable in the current scope.
+	 * 
+	 * @param string $name
+	 * @param mixed $default
+	 * @return mixed
+	 * 
+	 * @throws \OutOfBoundsException When the variable is not set and no default value is given.
+	 */
 	public function getVariable($name)
 	{
 		if($this->state & self::STATE_SCOPE)
@@ -252,6 +377,13 @@ class Execution
 		}
 	}
 	
+	/**
+	 * Set the given variable in the current scope, setting a variable to a value of NULL will
+	 * remove the variable from the current scope.
+	 * 
+	 * @param string $name
+	 * @param mixed $value
+	 */
 	public function setVariable($name, $value)
 	{
 		if($this->state & self::STATE_SCOPE)
@@ -273,6 +405,11 @@ class Execution
 		}
 	}
 	
+	/**
+	 * Remove the given variable from the current scope.
+	 * 
+	 * @param string $name
+	 */
 	public function removeVariable($name)
 	{
 		if($this->state & self::STATE_SCOPE)
@@ -297,31 +434,63 @@ class Execution
 		$this->variables = $variables;
 	}
 	
+	/**
+	 * Get the current node that this execution has arrived at.
+	 * 
+	 * @return Node
+	 */
 	public function getNode()
 	{
 		return $this->node;
 	}
 	
+	/**
+	 * Set the current node of this execution.
+	 * 
+	 * @param Node $node
+	 */
 	public function setNode(Node $node = NULL)
 	{
 		$this->node = $node;
 	}
 	
+	/**
+	 * Check if there has been a transition being taken.
+	 * 
+	 * @return boolean
+	 */
 	public function hasTransition()
 	{
 		return $this->transition !== NULL;
 	}
 	
+	/**
+	 * Get the last transition that has been taken.
+	 * 
+	 * @return Transition Last transition or NULL if no transition has been taken.
+	 */
 	public function getTransition()
 	{
 		return $this->transition;
 	}
 	
+	/**
+	 * Get the definition of the process being executed.
+	 * 
+	 * @return ProcessDefinition
+	 */
 	public function getProcessDefinition()
 	{
 		return $this->processDefinition;
 	}
 	
+	/**
+	 * Register commands to execute the behavior of the given node.
+	 * 
+	 * @param Node $node
+	 * 
+	 * @throws \RuntimeException When the execution has been terminated.
+	 */
 	public function execute(Node $node)
 	{
 		if($this->isTerminated())
@@ -346,6 +515,11 @@ class Execution
 		}));
 	}
 	
+	/**
+	 * Put the current execution into a wait state.
+	 * 
+	 * @throws \RuntimeException When the execution has been terminated.
+	 */
 	public function waitForSignal()
 	{
 		if($this->isTerminated())
@@ -359,6 +533,14 @@ class Execution
 		$this->engine->debug('{0} entered wait state', [(string)$this]);
 	}
 	
+	/**
+	 * Signal the execution in order to continue from a wait state.
+	 * 
+	 * @param string $signal The name of the signal or NULL when no such name exists.
+	 * @param array<string, mixed> $variables Execution variables to be set.
+	 * 
+	 * @throws \RuntimeException When the execution is terminated or not within a wait state.
+	 */
 	public function signal($signal = NULL, array $variables = [])
 	{
 		if($this->isTerminated())
@@ -391,6 +573,13 @@ class Execution
 		}));
 	}
 	
+	/**
+	 * Take a transition from the given node.
+	 * 
+	 * @param string $transition ID of the transition, ommitting it will assume a single outgoing transition.
+	 * 
+	 * @throws \RuntimeException When the execution has been terminated.
+	 */
 	public function take($transition = NULL)
 	{
 		if($this->isTerminated())
@@ -468,7 +657,7 @@ class Execution
 	 * @param array<string> $transitions
 	 * @param array<Execution> $recycle
 	 * 
-	 * @throws \RuntimeException
+	 * @throws \RuntimeException When the execution has been terminated.
 	 */
 	public function takeAll(array $transitions = NULL, array $recycle = [])
 	{

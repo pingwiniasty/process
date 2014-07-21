@@ -15,6 +15,11 @@ use KoolKode\Process\ActivityInterface;
 use KoolKode\Process\Execution;
 use KoolKode\Process\Node;
 
+/**
+ * Turns a node into an inclusive fork / join with an optional default transition.
+ *
+ * @author Martin Schröder
+ */
 class InclusiveChoiceBehavior implements ActivityInterface
 {
 	protected $defaultTransition;

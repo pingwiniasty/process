@@ -11,6 +11,11 @@
 
 namespace KoolKode\Process;
 
+/**
+ * Items are the basic unit of process model elements.
+ * 
+ * @author Martin Schröder
+ */
 abstract class Item
 {
 	protected $id;

@@ -11,4 +11,9 @@
 
 namespace KoolKode\Process\Event;
 
+/**
+ * Is triggered whenever an execution arrives at a node.
+ * 
+ * @author Martin Schröder
+ */
 class EnterNodeEvent extends AbstractProcessEvent { }

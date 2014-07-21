@@ -11,7 +11,19 @@
 
 namespace KoolKode\Process;
 
+/**
+ * A trigger can be attached to a transition turning it into a guarded transition.
+ * 
+ * @author Martin Schröder
+ */
 interface TriggerInterface extends \Serializable
 {
+	/**
+	 * Check if the guarded transition is active in the context of the
+	 * given execution.
+	 * 
+	 * @param Execution $execution
+	 * @return boolean
+	 */
 	public function isEnabled(Execution $execution);
 }

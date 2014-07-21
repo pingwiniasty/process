@@ -11,6 +11,12 @@
 
 namespace KoolKode\Process;
 
+/**
+ * Transitions are being used to model state transitions comparable to transitions in
+ * a Petri-Net.
+ * 
+ * @author Martin Schröder
+ */
 class Transition extends Item
 {
 	protected $from;

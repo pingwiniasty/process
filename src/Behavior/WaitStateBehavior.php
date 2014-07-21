@@ -14,6 +14,11 @@ namespace KoolKode\Process\Behavior;
 use KoolKode\Process\Execution;
 use KoolKode\Process\SignalableActivityInterface;
 
+/**
+ * Puts any arriving execution into a wait state, signaling continues an execution.
+ * 
+ * @author Martin Schröder
+ */
 class WaitStateBehavior implements SignalableActivityInterface
 {
 	public function execute(Execution $execution)

@@ -14,6 +14,11 @@ namespace KoolKode\Process\Behavior;
 use KoolKode\Process\ActivityInterface;
 use KoolKode\Process\Execution;
 
+/**
+ * Uses a generic PHP callback as behavior of a node.
+ * 
+ * @author Martin Schröder
+ */
 class CallbackBehavior implements ActivityInterface, \Serializable
 {
 	protected $callback;

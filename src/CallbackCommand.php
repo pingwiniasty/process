@@ -11,6 +11,11 @@
 
 namespace KoolKode\Process;
 
+/**
+ * Wrapper for a callable to be used as command executed by a process engine.
+ * 
+ * @author Martin Schröder
+ */
 class CallbackCommand implements CommandInterface
 {
 	protected $callback;

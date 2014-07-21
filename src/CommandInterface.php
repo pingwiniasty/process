@@ -11,7 +11,17 @@
 
 namespace KoolKode\Process;
 
+/**
+ * Commands encapsulate operations being performed by a process engine.
+ * 
+ * @author Martin Schröder
+ */
 interface CommandInterface
 {
+	/**
+	 * Execute the command in the context of the given process engine.
+	 * 
+	 * @param EngineInterface $engine
+	 */
 	public function execute(EngineInterface $engine);
 }

@@ -13,6 +13,11 @@ namespace KoolKode\Process;
 
 use KoolKode\Expression\Resolver\ExpressionResolverInterface;
 
+/**
+ * Hooks into the expression context and provides access to execution variables.
+ * 
+ * @author Martin Schröder
+ */
 class ExecutionExpressionResolver implements ExpressionResolverInterface
 {
 	public function getPriority()

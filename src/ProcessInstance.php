@@ -11,8 +11,14 @@
 
 namespace KoolKode\Process;
 
+use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Util\UUID;
 
+/**
+ * A process is top-level execution.
+ * 
+ * @author Martin Schröder
+ */
 class ProcessInstance extends Execution
 {
 	public function __construct(UUID $id, EngineInterface $engine, ProcessDefinition $processDefinition)
@@ -29,5 +35,12 @@ class ProcessInstance extends Execution
 	public function __toString()
 	{
 		return sprintf('process(%s)', $this->id);
+	}
+	
+	public function terminate()
+	{
+		parent::terminate();
+		
+		$this->engine->notify(new EndProcessEvent($this->node, $this));
 	}
 }

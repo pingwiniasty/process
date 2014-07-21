@@ -13,6 +13,11 @@ namespace KoolKode\Process;
 
 use KoolKode\Process\Behavior\CallbackBehavior;
 
+/**
+ * A node is process element that is comparable to a place in a Petri-Net.
+ * 
+ * @author Martin Schröder
+ */
 class Node extends Item
 {
 	const FLAG_NONE = 0;
@@ -39,6 +44,12 @@ class Node extends Item
 		return $this;
 	}
 	
+	/**
+	 * Get the node's behavior, will return a callback behavior that is connected to
+	 * an empty closure when no custom behavior has been specified.
+	 * 
+	 * @return ActivityInterface
+	 */
 	public function getBehavior()
 	{
 		if($this->behavior === NULL)

@@ -11,4 +11,11 @@
 
 namespace KoolKode\Process\Event;
 
+/**
+ * Is triggered immediately after a process instance has been created, the process start
+ * node is being set and initial process variables are populated, the process instance has
+ * not executed any kind of behavior yet.
+ * 
+ * @author Martin Schröder
+ */
 class StartProcessEvent extends AbstractProcessEvent { }
