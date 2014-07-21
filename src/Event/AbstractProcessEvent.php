@@ -21,22 +21,13 @@ use KoolKode\Process\Item;
  */
 abstract class AbstractProcessEvent
 {
-	protected $source;
-	protected $execution;
+	public $source;
+	
+	public $execution;
 	
 	public function __construct(Item $source, Execution $execution)
 	{
 		$this->source = $source;
 		$this->execution = $execution;
-	}
-	
-	public function getSource()
-	{
-		return $this->source;
-	}
-	
-	public function getExecution()
-	{
-		return $this->execution;
 	}
 }
