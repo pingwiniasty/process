@@ -48,18 +48,15 @@ class TestEngine extends AbstractEngine
 			$process = $factory(UUID::createRandom(), $this, $definition);
 		}
 		
-		$process->execute($startNode);
-		
 		foreach($variables as $k => $v)
 		{
 			$process->setVariable($k, $v);
 		}
 		
 		$this->registerExecution($process);
-		
 		$this->notify(new StartProcessEvent($startNode, $process));
 		
-		while($this->executeNextCommand());
+		$process->execute($startNode);
 		
 		return $process;
 	}
@@ -100,8 +97,6 @@ class TestEngine extends AbstractEngine
 		{
 			$execution->signal($signal, $variables);
 		}
-		
-		while($this->executeNextCommand());
 	}
 	
 	/**
@@ -120,8 +115,6 @@ class TestEngine extends AbstractEngine
 				$exec->signal($signal, $variables);
 			}
 		}
-		
-		while($this->executeNextCommand());
 	}
 	
 	protected function collectExecutions(Execution $execution, Node $node = NULL)

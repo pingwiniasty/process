@@ -566,6 +566,7 @@ class Execution
 				$this->takeAll(NULL, [$this]);
 			}
 		}));
+		
 	}
 	
 	/**
@@ -739,7 +740,10 @@ class Execution
 				$this->setState(self::STATE_CONCURRENT, false);
 				$root->setActive(true);
 					
-				$this->engine->debug(sprintf('Merged %u concurrent executions into {0}', $terminated), [(string)$root]);
+				if($terminated > 0)
+				{
+					$this->engine->debug(sprintf('Merged %u concurrent executions into {0}', $terminated), [(string)$root]);
+				}
 				
 				return $root->take(array_shift($transitions));
 			}

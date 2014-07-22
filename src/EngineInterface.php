@@ -43,11 +43,15 @@ interface EngineInterface extends LoggerInterface
 	public function pushCommand(CommandInterface $command);
 	
 	/**
-	 * Have the process engine execute the next queued up command.
+	 * Have the process engine execute the given command and return the result.
 	 * 
-	 * @return CommandInterface The executed command or NULL if there are no more commands left.
+	 * The engine will execute all pushed commands with higher priority before the target command. The target command
+	 * will be executed in it's own isolated scope.
+	 * 
+	 * @param CommandInterface $command
+	 * @return mixed
 	 */
-	public function executeNextCommand();
+	public function executeCommand(CommandInterface $command);
 	
 	public function startProcess(ProcessDefinition $definition, array $variables = [], callable $factory = NULL);
 	

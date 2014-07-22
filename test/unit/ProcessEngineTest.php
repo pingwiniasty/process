@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of KoolKode Process.
+ *
+ * (c) Martin Schröder <m.schroeder2007@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace KoolKode\Process;
 
 use KoolKode\Event\EventDispatcher;
@@ -27,14 +36,12 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$this->expressionParser = new ExpressionParser($lexer);
 		
-		$logger = NULL;
-		
-		$dispatcher = new EventDispatcher($logger);
+		$dispatcher = new EventDispatcher();
 		
 		$factory = new ExpressionContextFactory();
 		$factory->getResolvers()->registerResolver(new ExecutionExpressionResolver());
 		
-		$this->engine = new TestEngine($dispatcher, $factory, $logger);
+		$this->engine = new TestEngine($dispatcher, $factory);
 	}
 	
 	protected function exp($input)
@@ -186,8 +193,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('A', $waiting->getNode()->getId());
 		
 		$waiting->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertFalse($process->isTerminated());
 		$this->assertEquals(1, $this->engine->countWaiting($process));
 		$this->assertEquals(1, $this->engine->countConcurrent($process));
@@ -196,8 +201,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('C', $waiting->getNode()->getId());
 		
 		$waiting->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertTrue($process->isActive());
 		$this->assertTrue($process->isTerminated());
 	}
@@ -237,8 +240,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertFalse($process->isTerminated());
 		
 		$process->signal($transition);
-		while($this->engine->executeNextCommand());
-		
 		$this->assertTrue($process->isActive());
 		$this->assertFalse($process->isWaiting());
 		$this->assertTrue($process->isTerminated());
@@ -300,8 +301,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$process->setVariable('amount', $amount);
 		$process->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertTrue($process->isActive());
 		$this->assertFalse($process->isWaiting());
 		$this->assertTrue($process->isTerminated());
@@ -354,8 +353,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$process->setVariable('num', $num);
 		$process->setVariable('threshold', $threshold);
 		$process->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertTrue($process->isTerminated());
 		$this->assertEquals($result, $process->getVariable('result'));
 	}
@@ -397,8 +394,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$process->setVariable('num', 7);
 		
 		$process->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertEquals(1, $this->engine->countWaiting($process));
 		
 		$this->engine->signalAll($process);
@@ -493,8 +488,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertTrue($process->isWaiting());
 		
 		$process->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertTrue($process->isActive());
 		$this->assertFalse($process->isWaiting());
 		$this->assertTrue($process->isTerminated());
@@ -561,8 +554,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertFalse($waiting->isTerminated());
 		
 		$waiting->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertEquals(2, $this->engine->countConcurrent($process));
 		$this->assertEquals(1, $this->engine->countWaiting($process));
 		$waiting = $this->engine->findWaitingExecutions($process)[0];
@@ -583,8 +574,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertFalse($waiting->isTerminated());
 		
 		$waiting->signal();
-		while($this->engine->executeNextCommand());
-		
 		$this->assertTrue($process->isTerminated());
 		$this->assertTrue($process->isActive());
 		$this->assertFalse($process->isWaiting());
