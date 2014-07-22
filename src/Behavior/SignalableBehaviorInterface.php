@@ -9,7 +9,9 @@
 * file that was distributed with this source code.
 */
 
-namespace KoolKode\Process;
+namespace KoolKode\Process\Behavior;
+
+use KoolKode\Process\Execution;
 
 /**
  * Enhances a behavior by providing a mechanism to signal an execution in a wait state.

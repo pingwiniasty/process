@@ -9,7 +9,9 @@
 * file that was distributed with this source code.
 */
 
-namespace KoolKode\Process;
+namespace KoolKode\Process\Command;
+
+use KoolKode\Process\EngineInterface;
 
 /**
  * Commands encapsulate operations being performed by a process engine.

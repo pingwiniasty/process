@@ -12,7 +12,6 @@
 namespace KoolKode\Process\Behavior;
 
 use KoolKode\Process\Execution;
-use KoolKode\Process\SignalableBehaviorInterface;
 
 /**
  * Puts any arriving execution into a wait state, signaling continues an execution.

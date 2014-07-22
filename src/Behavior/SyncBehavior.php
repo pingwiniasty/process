@@ -11,7 +11,6 @@
 
 namespace KoolKode\Process\Behavior;
 
-use KoolKode\Process\BehaviorInterface;
 use KoolKode\Process\Execution;
 
 /**

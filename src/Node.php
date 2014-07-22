@@ -11,6 +11,7 @@
 
 namespace KoolKode\Process;
 
+use KoolKode\Process\Behavior\BehaviorInterface;
 use KoolKode\Process\Behavior\CallbackBehavior;
 
 /**

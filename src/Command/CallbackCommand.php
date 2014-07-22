@@ -9,7 +9,9 @@
 * file that was distributed with this source code.
 */
 
-namespace KoolKode\Process;
+namespace KoolKode\Process\Command;
+
+use KoolKode\Process\EngineInterface;
 
 /**
  * Wrapper for a callable to be used as command executed by a process engine.

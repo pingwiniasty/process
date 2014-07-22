@@ -12,6 +12,7 @@
 namespace KoolKode\Process;
 
 use KoolKode\Expression\ExpressionContextFactoryInterface;
+use KoolKode\Process\Command\CommandInterface;
 use Psr\Log\LoggerInterface;
 
 /**

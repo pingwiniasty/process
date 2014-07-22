@@ -30,6 +30,7 @@ class TestEngine extends AbstractEngine
 	
 	public function startProcess(ProcessDefinition $definition, array $variables = [], callable $factory = NULL)
 	{	
+		// FIXME: Should extract a command that starts the process, initial node filtering is out of scope for this!
 		$initial = $definition->findInitialNodes();
 		
 		if(count($initial) != 1)

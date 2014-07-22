@@ -12,6 +12,8 @@
 namespace KoolKode\Process;
 
 use KoolKode\Expression\ExpressionContextInterface;
+use KoolKode\Process\Behavior\SignalableBehaviorInterface;
+use KoolKode\Process\Command\CallbackCommand;
 use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;

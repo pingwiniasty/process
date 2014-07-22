@@ -13,6 +13,7 @@ namespace KoolKode\Process;
 
 use KoolKode\Event\EventDispatcherInterface;
 use KoolKode\Expression\ExpressionContextFactoryInterface;
+use KoolKode\Process\Command\CommandInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 

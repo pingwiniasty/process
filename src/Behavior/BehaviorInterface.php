@@ -9,7 +9,9 @@
 * file that was distributed with this source code.
 */
 
-namespace KoolKode\Process;
+namespace KoolKode\Process\Behavior;
+
+use KoolKode\Process\Execution;
 
 /**
  * A behavior implements the functional aspects of a node.
