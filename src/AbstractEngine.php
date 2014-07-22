@@ -59,7 +59,19 @@ abstract class AbstractEngine implements EngineInterface
 	
 	public function pushCommand(CommandInterface $command)
 	{
-		$this->commands[] = $command;
+		$priority = $command->getPriority();
+		
+		for($count = count($this->commands), $i = 0; $i < $count; $i++)
+		{
+			if($this->commands[$i]->getPriority() < $priority)
+			{
+				array_splice($this->commands, $i, 0, [$command]);
+				
+				return $command;
+			}
+		}
+		
+		return $this->commands[] = $command;
 	}
 	
 	public function executeNextCommand()

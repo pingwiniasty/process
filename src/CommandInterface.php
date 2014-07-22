@@ -19,6 +19,20 @@ namespace KoolKode\Process;
 interface CommandInterface
 {
 	/**
+	 * Default command priority being used.
+	 * 
+	 * @var integer
+	 */
+	const PRIORITY_DEFAULT = 1000;
+	
+	/**
+	 * Get the command priority.
+	 * 
+	 * @return integer
+	 */
+	public function getPriority();
+	
+	/**
 	 * Execute the command in the context of the given process engine.
 	 * 
 	 * @param EngineInterface $engine

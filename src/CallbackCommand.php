@@ -20,9 +20,17 @@ class CallbackCommand implements CommandInterface
 {
 	protected $callback;
 	
-	public function __construct(callable $callback)
+	protected $priority;
+	
+	public function __construct(callable $callback, $priority = self::PRIORITY_DEFAULT)
 	{
 		$this->callback = $callback;
+		$this->priority = (int)$priority;
+	}
+	
+	public function getPriority()
+	{
+		return $this->priority;
 	}
 	
 	public function execute(EngineInterface $engine)
