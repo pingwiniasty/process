@@ -12,6 +12,7 @@
 namespace KoolKode\Process;
 
 use KoolKode\Expression\ExpressionContextInterface;
+use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;
 use KoolKode\Process\Event\TakeTransitionEvent;
@@ -45,18 +46,30 @@ class Execution
 	
 	protected $engine;
 	
-	public function __construct(UUID $id, EngineInterface $engine, ProcessDefinition $processDefinition, Execution $parentExecution)
+	public function __construct(UUID $id, EngineInterface $engine, ProcessDefinition $processDefinition, Execution $parentExecution = NULL)
 	{
 		$this->id = $id;
 		$this->engine = $engine;
 		$this->processDefinition = $processDefinition;
 		$this->parentExecution = $parentExecution;
 		
+		if($parentExecution === NULL)
+		{
+			$this->state |= self::STATE_SCOPE;
+			
+			$engine->debug('Starting process {0}', [$processDefinition->getTitle()]);
+		}
+		
 		$engine->debug('Created {0}', [(string)$this]);
 	}
 	
 	public function __toString()
 	{
+		if($this->parentExecution === NULL)
+		{
+			return sprintf('process(%s)', $this->id);
+		}
+		
 		return sprintf('execution(%s)', $this->id);
 	}
 
@@ -117,7 +130,11 @@ class Execution
 			}
 		}
 		
-		if($this->parentExecution !== NULL)
+		if($this->parentExecution === NULL)
+		{
+			$this->engine->notify(new EndProcessEvent($this->node, $this));
+		}
+		else
 		{
 			$this->parentExecution->childExecutionTerminated($this);
 		}
@@ -311,18 +328,28 @@ class Execution
 	}
 	
 	/**
-	 * Get the process instance (that is the root-level execution).
+	 * Check if this execution is a root execution (resembles a "process instance").
 	 * 
-	 * @return ProcessInstance
+	 * @return boolean
 	 */
-	public function getProcessInstance()
+	public function isRootExecution()
+	{
+		return $this->parentExecution === NULL;
+	}
+	
+	/**
+	 * Get the root execution (could be refered to as a "process instance").
+	 * 
+	 * @return Execution
+	 */
+	public function getRootExecution()
 	{
 		if($this->parentExecution === NULL)
 		{
 			return $this;
 		}
 		
-		return $this->parentExecution->getProcessInstance();
+		return $this->parentExecution->getRootExecution();
 	}
 	
 	/**

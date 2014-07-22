@@ -41,7 +41,7 @@ class TestEngine extends AbstractEngine
 		
 		if($factory === NULL)
 		{
-			$process = new ProcessInstance(UUID::createRandom(), $this, $definition);
+			$process = new Execution(UUID::createRandom(), $this, $definition);
 		}
 		else
 		{

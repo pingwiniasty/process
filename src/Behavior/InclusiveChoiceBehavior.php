@@ -71,7 +71,7 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 			return false;
 		}
 		
-		foreach($execution->getProcessInstance()->findConcurrentExecutions() as $concurrent)
+		foreach($execution->getRootExecution()->findConcurrentExecutions() as $concurrent)
 		{
 			if($concurrent === $execution)
 			{
