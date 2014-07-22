@@ -28,11 +28,11 @@ abstract class AbstractEngine implements EngineInterface
 	use LoggerTrait;
 	
 	/**
-	 * Will be set to true whenever an execution is performed.
+	 * Determines the execution depth, defaults to 0, will be managed byperformExecution().
 	 * 
-	 * @var boolean
+	 * @var integer
 	 */
-	protected $performingExecution = false;
+	protected $executionDepth = 0;
 	
 	/**
 	 * Holds the prioritized command queue being used.
@@ -112,33 +112,33 @@ abstract class AbstractEngine implements EngineInterface
 	{
 		$this->storeCommand($command);
 		
-		if(!$this->performingExecution && count($this->commands) === 1)
+		if($this->executionDepth == 0 && count($this->commands) === 1)
 		{
-			$exec = $this->performingExecution;
-			$this->performingExecution = true;
-			
-			try
-			{
-				$this->performExecution(function() {
+			$this->performExecution(function() {
+				
+				$count = 0;
+				
+				while(!empty($this->commands))
+				{
+					$cmd = array_shift($this->commands);
+					$cmd->execute($this);
 					
-					$count = 0;
-					
-					while(!empty($this->commands))
-					{
-						$cmd = array_shift($this->commands);
-						$cmd->execute($this);
-						
-						$count++;
-					}
-					
-					$this->debug(sprintf('Performed %u consecutive commands', $count));
-				});
-			}
-			finally
-			{
-				$this->performingExecution = $exec;
-			}
+					$count++;
+				}
+				
+				$this->debug(sprintf('Performed %u consecutive commands', $count));
+			});
 		}
+	}
+	
+	/**
+	 * Get the current depth of execution.
+	 * 
+	 * @return integer
+	 */
+	public function getExecutionDepth()
+	{
+		return $this->executionDepth;
 	}
 	
 	/**
@@ -147,56 +147,47 @@ abstract class AbstractEngine implements EngineInterface
 	public function executeCommand(CommandInterface $command)
 	{
 		$result = NULL;
-		$exec = $this->performingExecution;
-		$this->performingExecution = true;
 		
+		$this->storeCommand($command);
+		
+		while(!empty($this->commands))
+		{
+			$cmd = array_shift($this->commands);
+			
+			if($cmd === $command)
+			{
+				break;
+			}
+			
+			$cmd->execute($this);
+		}
+		
+		$tmp = $this->commands;
+		$this->commands = [];
+			
 		try
 		{
-			$this->storeCommand($command);
-			
-			while(!empty($this->commands))
-			{
-				$cmd = array_shift($this->commands);
+			$result = $this->performExecution(function() use($command) {
 				
-				if($cmd === $command)
+				$count = 1;
+				$command->execute($this);
+				
+				while(!empty($this->commands))
 				{
-					break;
+					$cmd = array_shift($this->commands);
+					$cmd->execute($this);
+					
+					$count++;
 				}
 				
-				$cmd->execute($this);
-			}
-			
-			$tmp = $this->commands;
-			$this->commands = [];
-				
-			try
-			{
-				$result = $this->performExecution(function() use($command) {
-					
-					$count = 1;
-					$command->execute($this);
-					
-					while(!empty($this->commands))
-					{
-						$cmd = array_shift($this->commands);
-						$cmd->execute($this);
-						
-						$count++;
-					}
-					
-					$this->debug(sprintf('Performed %u consecutive commands', $count));
-				});
-			}
-			finally
-			{
-				$this->commands = $tmp;	
-			}
+				$this->debug(sprintf('Performed %u consecutive commands', $count));
+			});
 		}
 		finally
 		{
-			$this->performingExecution = $exec;
+			$this->commands = $tmp;	
 		}
-		
+			
 		return $result;
 	}
 	
@@ -224,8 +215,9 @@ abstract class AbstractEngine implements EngineInterface
 	}
 	
 	/**
-	 * Triggers the given callback, can be extended in order to wrap interceptors around execution
-	 * of commands.
+	 * Triggers the given callback, can be extended in order to wrap interceptors around execution of commands.
+	 * 
+	 * Be sure to call the parent method when you override this method!
 	 * 
 	 * Keep in mind that nested executions are allowed and need to be dealt with when implementing
 	 * features such as transaction handling.
@@ -235,6 +227,15 @@ abstract class AbstractEngine implements EngineInterface
 	 */
 	protected function performExecution(callable $callback)
 	{
-		return $callback();
+		$this->executionDepth++;
+		
+		try
+		{
+			return $callback();
+		}
+		finally
+		{
+			$this->executionDepth--;
+		}
 	}
 }
