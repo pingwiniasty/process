@@ -247,7 +247,7 @@ class Execution
 	 */
 	public function createExecution($concurrent = true)
 	{
-		$execution = new Execution(UUID::createRandom(), $this->engine, $this->processDefinition, $this);
+		$execution = new static(UUID::createRandom(), $this->engine, $this->processDefinition, $this);
 		$execution->setNode($this->node);
 		
 		if($concurrent)
@@ -255,10 +255,19 @@ class Execution
 			$execution->state |= self::STATE_CONCURRENT;
 		}
 		
+		$this->processCreatedExecution($execution);
+		
 		$this->engine->registerExecution($execution);
 	
 		return $this->childExecutions[] = $execution;
 	}
+	
+	/**
+	 * Is called after each creation of a new execution, can be used to copy data fields into the new execution.
+	 * 
+	 * @param Execution $execution
+	 */
+	protected function processCreatedExecution(Execution $execution) { }
 	
 	/**
 	 * Find all child executions.
