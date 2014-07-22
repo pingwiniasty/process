@@ -506,12 +506,7 @@ class Execution
 			$this->engine->debug('{0} entering {1}', [(string)$this, (string)$this->node]);
 			$this->engine->notify(new EnterNodeEvent($this->node, $this));
 			
-			$activity = $this->node->getBehavior();
-			
-			if($activity instanceof ActivityInterface)
-			{	
-				$activity->execute($this);
-			}
+			$this->node->getBehavior()->execute($this);
 		}));
 	}
 	
@@ -560,11 +555,11 @@ class Execution
 			
 			$this->engine->debug('Signaling {0} to {1}', [$signal, (string)$this]);
 			
-			$activity = $this->node->getBehavior();
+			$behavior = $this->node->getBehavior();
 			
-			if($activity instanceof SignalableActivityInterface)
+			if($behavior instanceof SignalableBehaviorInterface)
 			{
-				$activity->signal($this, $signal, $variables);
+				$behavior->signal($this, $signal, $variables);
 			}
 			else
 			{

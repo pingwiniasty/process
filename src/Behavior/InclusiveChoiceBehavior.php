@@ -11,7 +11,7 @@
 
 namespace KoolKode\Process\Behavior;
 
-use KoolKode\Process\ActivityInterface;
+use KoolKode\Process\BehaviorInterface;
 use KoolKode\Process\Execution;
 use KoolKode\Process\Node;
 
@@ -20,7 +20,7 @@ use KoolKode\Process\Node;
  *
  * @author Martin Schröder
  */
-class InclusiveChoiceBehavior implements ActivityInterface
+class InclusiveChoiceBehavior implements BehaviorInterface
 {
 	protected $defaultTransition;
 	

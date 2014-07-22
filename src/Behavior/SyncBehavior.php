@@ -11,7 +11,7 @@
 
 namespace KoolKode\Process\Behavior;
 
-use KoolKode\Process\ActivityInterface;
+use KoolKode\Process\BehaviorInterface;
 use KoolKode\Process\Execution;
 
 /**
@@ -20,7 +20,7 @@ use KoolKode\Process\Execution;
  * 
  * @author Martin Schröder
  */
-class SyncBehavior implements ActivityInterface
+class SyncBehavior implements BehaviorInterface
 {
 	public function execute(Execution $execution)
 	{

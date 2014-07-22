@@ -12,11 +12,11 @@
 namespace KoolKode\Process;
 
 /**
- * An activity is used to model the behavior of a node within a process.
+ * A behavior implements the functional aspects of a node.
  * 
  * @author Martin Schröder
  */
-interface ActivityInterface
+interface BehaviorInterface
 {
 	/**
 	 * Execute the connected behavior in the context of the given execution.

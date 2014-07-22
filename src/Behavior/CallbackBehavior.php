@@ -11,7 +11,7 @@
 
 namespace KoolKode\Process\Behavior;
 
-use KoolKode\Process\ActivityInterface;
+use KoolKode\Process\BehaviorInterface;
 use KoolKode\Process\Execution;
 
 /**
@@ -19,7 +19,7 @@ use KoolKode\Process\Execution;
  * 
  * @author Martin Schröder
  */
-class CallbackBehavior implements ActivityInterface, \Serializable
+class CallbackBehavior implements BehaviorInterface, \Serializable
 {
 	protected $callback;
 	protected $takeAll;

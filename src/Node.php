@@ -48,7 +48,7 @@ class Node extends Item
 	 * Get the node's behavior, will return a callback behavior that is connected to
 	 * an empty closure when no custom behavior has been specified.
 	 * 
-	 * @return ActivityInterface
+	 * @return BehaviorInterface
 	 */
 	public function getBehavior()
 	{
@@ -62,7 +62,7 @@ class Node extends Item
 		return $this->behavior;
 	}
 	
-	public function behavior(ActivityInterface $behavior = NULL)
+	public function behavior(BehaviorInterface $behavior = NULL)
 	{
 		$this->behavior = $behavior;
 		

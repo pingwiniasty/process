@@ -12,11 +12,11 @@
 namespace KoolKode\Process;
 
 /**
- * Enhances an activity by providing a mechanism to signal additional behavior.
+ * Enhances a behavior by providing a mechanism to signal an execution in a wait state.
  * 
  * @author Martin Schröder
  */
-interface SignalableActivityInterface extends ActivityInterface
+interface SignalableBehaviorInterface extends BehaviorInterface
 {
 	/**
 	 * React to the given signal and payload within the context of the given execution.
