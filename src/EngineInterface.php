@@ -54,7 +54,5 @@ interface EngineInterface extends LoggerInterface
 	 */
 	public function executeCommand(CommandInterface $command);
 	
-	public function startProcess(ProcessDefinition $definition, array $variables = [], callable $factory = NULL);
-	
 	public function registerExecution(Execution $execution);
 }

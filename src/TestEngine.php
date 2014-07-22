@@ -11,8 +11,8 @@
 
 namespace KoolKode\Process;
 
+use KoolKode\Process\Command\StartProcessCommand;
 use KoolKode\Util\UUID;
-use KoolKode\Process\Event\StartProcessEvent;
 
 /**
  * Provides a very basic in-memory process engine that can be used for unit testing etc.
@@ -28,38 +28,9 @@ class TestEngine extends AbstractEngine
 		$this->executions[(string)$execution->getId()] = $execution;
 	}
 	
-	public function startProcess(ProcessDefinition $definition, array $variables = [], callable $factory = NULL)
-	{	
-		// FIXME: Should extract a command that starts the process, initial node filtering is out of scope for this!
-		$initial = $definition->findInitialNodes();
-		
-		if(count($initial) != 1)
-		{
-			throw new \RuntimeException(sprintf('Process "%s" does not declare exactly 1 start node', $definition->getTitle()));
-		}
-		
-		$startNode = array_shift($initial);
-		
-		if($factory === NULL)
-		{
-			$process = new Execution(UUID::createRandom(), $this, $definition);
-		}
-		else
-		{
-			$process = $factory(UUID::createRandom(), $this, $definition);
-		}
-		
-		foreach($variables as $k => $v)
-		{
-			$process->setVariable($k, $v);
-		}
-		
-		$this->registerExecution($process);
-		$this->notify(new StartProcessEvent($startNode, $process));
-		
-		$process->execute($startNode);
-		
-		return $process;
+	public function startProcess(ProcessDefinition $definition, array $variables = [])
+	{
+		return $this->executeCommand(new StartProcessCommand($definition, NULL, $variables));
 	}
 	
 	public function countWaiting(Execution $execution, Node $node = NULL)
