@@ -28,7 +28,7 @@ abstract class AbstractEngine implements EngineInterface
 	use LoggerTrait;
 	
 	/**
-	 * Determines the execution depth, defaults to 0, will be managed byperformExecution().
+	 * Determines the execution depth, defaults to 0, will be managed by performExecution().
 	 * 
 	 * @var integer
 	 */
@@ -112,7 +112,7 @@ abstract class AbstractEngine implements EngineInterface
 	{
 		$this->storeCommand($command);
 		
-		if($this->executionDepth == 0 && count($this->commands) === 1)
+		if($this->executionDepth == 0)
 		{
 			$this->performExecution(function() {
 				
@@ -146,8 +146,6 @@ abstract class AbstractEngine implements EngineInterface
 	 */
 	public function executeCommand(CommandInterface $command)
 	{
-		$result = NULL;
-		
 		$this->storeCommand($command);
 		
 		while(!empty($this->commands))
@@ -170,7 +168,7 @@ abstract class AbstractEngine implements EngineInterface
 			$result = $this->performExecution(function() use($command) {
 				
 				$count = 1;
-				$command->execute($this);
+				$result = $command->execute($this);
 				
 				while(!empty($this->commands))
 				{
@@ -181,6 +179,8 @@ abstract class AbstractEngine implements EngineInterface
 				}
 				
 				$this->debug(sprintf('Performed %u consecutive commands', $count));
+				
+				return $result;
 			});
 		}
 		finally
