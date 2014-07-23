@@ -16,6 +16,9 @@ use KoolKode\Expression\Parser\ExpressionLexer;
 use KoolKode\Expression\Parser\ExpressionParser;
 use KoolKode\Expression\ExpressionContextFactory;
 use KoolKode\Expression\ExpressionInterface;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Monolog\Processor\PsrLogMessageProcessor;
 
 /**
  * Base class for a unit tests with process engine support.
@@ -35,17 +38,30 @@ abstract class ProcessTestCase extends \PHPUnit_Framework_TestCase
 		parent::setUp();
 		
 		$logger = NULL;
+		
+		$logger = NULL;
+		
+		if(!empty($_SERVER['KK_LOG']))
+		{
+			$logger = new Logger('Process');
+			$logger->pushHandler(new StreamHandler(STDERR));
+			$logger->pushProcessor(new PsrLogMessageProcessor());
+			
+			fwrite(STDERR, "\n");
+			fwrite(STDERR, sprintf("TEST CASE: %s\n", $this->getName()));
+		}
 	
 		$lexer = new ExpressionLexer();
 		$lexer->setDelimiters('#{', '}');
 	
 		$this->expressionParser = new ExpressionParser($lexer);
-		$this->eventDispatcher = new EventDispatcher($logger);
+		$this->eventDispatcher = new EventDispatcher();
 	
 		$factory = new ExpressionContextFactory();
 		$factory->getResolvers()->registerResolver(new ExecutionExpressionResolver());
 	
 		$this->processEngine = new TestEngine($this->eventDispatcher, $factory);
+		$this->processEngine->setLogger($logger);
 	}
 	
 	/**
