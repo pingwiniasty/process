@@ -21,12 +21,10 @@ use KoolKode\Process\Execution;
 class CallbackBehavior implements BehaviorInterface, \Serializable
 {
 	protected $callback;
-	protected $takeAll;
 	
-	public function __construct(callable $callback, $takeAll = true)
+	public function __construct(callable $callback)
 	{
 		$this->callback = $callback;
-		$this->takeAll = $takeAll ? true : false;
 	}
 	
 	public function serialize()
@@ -34,25 +32,15 @@ class CallbackBehavior implements BehaviorInterface, \Serializable
 		throw new \RuntimeException('Callback behaviors are for testing only and cannot be serialized');
 	}
 	
+	/**
+	 * @codeCoverageIgnore
+	 */
 	public function unserialize($serialized) { }
-	
-	public function isTakeAll()
-	{
-		return $this->takeAll;
-	}
 	
 	public function execute(Execution $execution)
 	{
-		call_user_func($this->callback, $execution);
+		$trans = call_user_func($this->callback, $execution);
 		
-		if($this->takeAll)
-		{
-			if($execution->isWaiting() || !$execution->isActive() || $execution->isTerminated())
-			{
-				return;
-			}
-			
-			$execution->takeAll();
-		}
+		return $execution->takeAll(($trans === NULL) ? $trans : (array)$trans, [$execution]);
 	}
 }
