@@ -50,9 +50,13 @@ class StartProcessCommand extends AbstractCommand
 	
 	public function execute(EngineInterface $engine)
 	{
-		$engine->debug('Starting process {0} at start {1}', [(string)$this->model->getId(), $this->startNode->getId()]);
+		$engine->debug('Starting process {process} at {node}', [
+			'process' => (string)$this->model->getId(),
+			'node' => (string)$this->startNode
+		]);
 		
 		$process = $this->createRootExecution($engine);
+		$engine->debug('Created {0}', [(string)$process]);
 		
 		foreach($this->variables as $k => $v)
 		{

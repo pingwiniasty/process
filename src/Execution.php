@@ -58,11 +58,7 @@ class Execution
 		if($parentExecution === NULL)
 		{
 			$this->state |= self::STATE_SCOPE;
-			
-			$engine->debug('Starting process {0}', [$processDefinition->getTitle()]);
 		}
-		
-		$engine->debug('Created {0}', [(string)$this]);
 	}
 	
 	public function __toString()
@@ -257,19 +253,11 @@ class Execution
 			$execution->state |= self::STATE_CONCURRENT;
 		}
 		
-		$this->processCreatedExecution($execution);
-		
 		$this->engine->registerExecution($execution);
-	
+		$this->engine->debug('Created {0}', [(string)$execution]);
+		
 		return $this->childExecutions[] = $execution;
 	}
-	
-	/**
-	 * Is called after each creation of a new execution, can be used to copy data fields into the new execution.
-	 * 
-	 * @param Execution $execution
-	 */
-	protected function processCreatedExecution(Execution $execution) { }
 	
 	/**
 	 * Find all child executions.
