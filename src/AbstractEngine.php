@@ -36,6 +36,13 @@ abstract class AbstractEngine implements EngineInterface
 	protected $executionDepth = 0;
 	
 	/**
+	 * Counts the number of commands that have been executed during the current execution.
+	 * 
+	 * @var integer
+	 */
+	protected $executionCount = 0;
+	
+	/**
 	 * Holds the prioritized command queue being used.
 	 * 
 	 * @var array<CommandInterface>
@@ -117,17 +124,13 @@ abstract class AbstractEngine implements EngineInterface
 		{
 			$this->performExecution(function() {
 				
-				$count = 0;
-				
 				while(!empty($this->commands))
 				{
 					$cmd = array_shift($this->commands);
 					$cmd->execute($this);
 					
-					$count++;
+					$this->executionCount++;
 				}
-				
-				$this->debug(sprintf('Performed %u consecutive commands', $count));
 			});
 		}
 	}
@@ -163,12 +166,12 @@ abstract class AbstractEngine implements EngineInterface
 		
 		$tmp = $this->commands;
 		$this->commands = [];
-			
+		
 		try
 		{
 			$result = $this->performExecution(function() use($command) {
 				
-				$count = 1;
+				$this->executionCount++;
 				$result = $command->execute($this);
 				
 				while(!empty($this->commands))
@@ -176,10 +179,8 @@ abstract class AbstractEngine implements EngineInterface
 					$cmd = array_shift($this->commands);
 					$cmd->execute($this);
 					
-					$count++;
+					$this->executionCount++;
 				}
-				
-				$this->debug(sprintf('Performed %u consecutive commands', $count));
 				
 				return $result;
 			});
@@ -230,13 +231,21 @@ abstract class AbstractEngine implements EngineInterface
 	{
 		$this->executionDepth++;
 		
+		$count = $this->executionCount;
+		$this->executionCount = 0;
+		
+		$this->debug('BEGIN execution');
+		
 		try
 		{
 			return $callback();
 		}
 		finally
 		{
+			$this->debug('END execution, {count} commands executed', ['count' => $this->executionCount]);
+			
 			$this->executionDepth--;
+			$this->executionCount = $count;
 		}
 	}
 }
