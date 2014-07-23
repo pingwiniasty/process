@@ -56,7 +56,9 @@ class StartProcessCommand extends AbstractCommand
 		]);
 		
 		$process = $this->createRootExecution($engine);
-		$engine->debug('Created {0}', [(string)$process]);
+		$engine->debug('Created {execution}', [
+			'execution' => (string)$process
+		]);
 		
 		foreach($this->variables as $k => $v)
 		{

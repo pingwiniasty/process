@@ -118,7 +118,9 @@ class Execution
 	{
 		$this->state |= self::STATE_TERMINATE;
 		
-		$this->engine->debug('Terminate {0}', [(string)$this]);
+		$this->engine->debug('Terminate {execution}', [
+			'execution' => (string)$this
+		]);
 		
 		foreach($this->childExecutions as $execution)
 		{
@@ -254,7 +256,9 @@ class Execution
 		}
 		
 		$this->engine->registerExecution($execution);
-		$this->engine->debug('Created {0}', [(string)$execution]);
+		$this->engine->debug('Created {execution}', [
+			'execution' => (string)$execution
+		]);
 		
 		return $this->childExecutions[] = $execution;
 	}
@@ -422,7 +426,10 @@ class Execution
 			{
 				$this->variables[$name] = $value;
 				
-				$this->engine->debug('Set variable {0} in {1}', [(string)$name, (string)$this]);
+				$this->engine->debug('Set variable {var} in {execution}', [
+					'var' => (string)$name,
+					'execution' => (string)$this
+				]);
 			}
 		}
 		else
@@ -442,7 +449,10 @@ class Execution
 		{
 			unset($this->variables[$name]);
 			
-			$this->engine->debug('Removed variable {0} from {1}', [(string)$name, (string)$this]);
+			$this->engine->debug('Removed variable {var} from {execution}', [
+				'var' => (string)$name,
+				'execution' => (string)$this
+			]);
 		}
 		else
 		{
@@ -529,7 +539,10 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->node = $node;
 			
-			$this->engine->debug('{0} entering {1}', [(string)$this, (string)$this->node]);
+			$this->engine->debug('{execution} entering {node}', [
+				'execution' => (string)$this,
+				'node' => (string)$this->node
+			]);
 			$this->engine->notify(new EnterNodeEvent($this->node, $this));
 			
 			$this->node->getBehavior()->execute($this);
@@ -551,7 +564,9 @@ class Execution
 		$this->timestamp = microtime(true);
 		$this->state |= self::STATE_WAIT;
 		
-		$this->engine->debug('{0} entered wait state', [(string)$this]);
+		$this->engine->debug('{execution} entered wait state', [
+			'execution' => (string)$this
+		]);
 	}
 	
 	/**
@@ -579,7 +594,10 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->setState(self::STATE_WAIT, false);
 			
-			$this->engine->debug('Signaling {0} to {1}', [$signal, (string)$this]);
+			$this->engine->debug('Signaling {signal} to {execution}', [
+				'signal' => $signal,
+				'execution' => (string)$this
+			]);
 			
 			$behavior = $this->node->getBehavior();
 			
@@ -659,10 +677,16 @@ class Execution
 				return;
 			}
 			
-			$this->engine->debug('{0} leaves {1}', [(string)$this, (string)$this->node]);
+			$this->engine->debug('{execution} leaves {node}', [
+				'execution' => (string)$this,
+				'node' => (string)$this->node
+			]);
 			$this->engine->notify(new LeaveNodeEvent($this->node, $this));
 			
-			$this->engine->debug('{0} transitions to {1}', [(string)$this, (string)$trans]);
+			$this->engine->debug('{execution} taking {transition}', [
+				'execution' => (string)$this,
+				'transition' => (string)$trans
+			]);
 			$this->engine->notify(new TakeTransitionEvent($trans, $this));
 			
 			$this->timestamp = microtime(true);
@@ -768,7 +792,10 @@ class Execution
 					
 				if($terminated > 0)
 				{
-					$this->engine->debug(sprintf('Merged %u concurrent executions into {0}', $terminated), [(string)$root]);
+					$this->engine->debug('Merged {count} concurrent executions into {execution}', [
+						'count' => $terminated,
+						'execution' => (string)$root
+					]);
 				}
 				
 				return $root->take(array_shift($transitions));

@@ -136,16 +136,6 @@ abstract class AbstractEngine implements EngineInterface
 	}
 	
 	/**
-	 * Get the current depth of execution.
-	 * 
-	 * @return integer
-	 */
-	public function getExecutionDepth()
-	{
-		return $this->executionDepth;
-	}
-	
-	/**
 	 * {@inheritdoc}
 	 */
 	public function executeCommand(CommandInterface $command)
@@ -242,7 +232,9 @@ abstract class AbstractEngine implements EngineInterface
 		}
 		finally
 		{
-			$this->debug('END execution, {count} commands executed', ['count' => $this->executionCount]);
+			$this->debug('END execution, {count} commands executed', [
+				'count' => $this->executionCount
+			]);
 			
 			$this->executionDepth--;
 			$this->executionCount = $count;

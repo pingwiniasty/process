@@ -27,21 +27,6 @@ class ExpressionTrigger implements TriggerInterface
 		$this->expression = $expression;
 	}
 	
-	public function serialize()
-	{
-		return serialize($this->expression);
-	}
-	
-	public function unserialize($serialized)
-	{
-		$this->expression = unserialize($serialized);
-	}
-	
-	public function getExpression()
-	{
-		return $this->expression;
-	}
-	
 	public function isEnabled(Execution $execution)
 	{
 		return call_user_func($this->expression, $execution->getExpressionContext()) ? true : false;

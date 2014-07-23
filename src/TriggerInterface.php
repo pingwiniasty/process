@@ -16,7 +16,7 @@ namespace KoolKode\Process;
  * 
  * @author Martin Schröder
  */
-interface TriggerInterface extends \Serializable
+interface TriggerInterface
 {
 	/**
 	 * Check if the guarded transition is active in the context of the
