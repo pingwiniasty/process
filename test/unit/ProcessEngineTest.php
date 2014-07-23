@@ -21,34 +21,8 @@ use KoolKode\Process\Behavior\InclusiveChoiceBehavior;
 use KoolKode\Process\Behavior\SyncBehavior;
 use KoolKode\Process\Behavior\WaitStateBehavior;
 
-class NodeTest extends \PHPUnit_Framework_TestCase
+class ProcessEngineTest extends ProcessTestCase
 {
-	protected $expressionParser;
-	
-	protected $engine;
-	
-	protected function setUp()
-	{
-		parent::setUp();
-		
-		$lexer = new ExpressionLexer();
-		$lexer->setDelimiters('#{', '}');
-		
-		$this->expressionParser = new ExpressionParser($lexer);
-		
-		$dispatcher = new EventDispatcher();
-		
-		$factory = new ExpressionContextFactory();
-		$factory->getResolvers()->registerResolver(new ExecutionExpressionResolver());
-		
-		$this->engine = new TestEngine($dispatcher, $factory);
-	}
-	
-	protected function exp($input)
-	{
-		return $this->expressionParser->parse($input);
-	}
-	
 	public function testDefaultFork()
 	{
 		$builder = new ProcessBuilder('Default Fork Behavior');
@@ -62,25 +36,25 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('B')->behavior(new WaitStateBehavior());
 		$builder->node('C')->behavior(new WaitStateBehavior());
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 
 		$this->assertFalse($process->isTerminated());
 		$this->assertFalse($process->isActive());
-		$this->assertEquals(3, $this->engine->countWaiting($process));
+		$this->assertEquals(3, $this->processEngine->countWaiting($process));
 		
-		foreach($this->engine->findWaitingExecutions($process) as $execution)
+		foreach($this->processEngine->findWaitingExecutions($process) as $execution)
 		{
 			$this->assertTrue($execution->isActive());
 			$this->assertTrue($execution->isWaiting());
 			
-			$this->engine->signal($execution);
+			$this->processEngine->signal($execution);
 			
 			$this->assertTrue($execution->isTerminated());
 			$this->assertFalse($execution->isWaiting());
 		}
 		
-		$this->assertEquals(0, $this->engine->countConcurrent($process));
-		$this->assertEquals(0, $this->engine->countWaiting($process));
+		$this->assertEquals(0, $this->processEngine->countConcurrent($process));
+		$this->assertEquals(0, $this->processEngine->countWaiting($process));
 		$this->assertTrue($process->isActive());
 		$this->assertTrue($process->isTerminated());
 		$this->assertFalse($process->isWaiting());
@@ -105,9 +79,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('start')->initial();
 		$builder->transition('t1', 'start', 'A')
-				->trigger(new ExpressionTrigger($this->exp('#{ a }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ a }')));
 		$builder->transition('t2', 'start', 'B')
-				->trigger(new ExpressionTrigger($this->exp('#{ b }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ b }')));
 		
 		$builder->node('A')->behavior(new CallbackBehavior(function(Execution $ex) {
 			$ex->setVariable('result', $ex->getVariable('result', 0) + 3);
@@ -117,7 +91,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 			$ex->setVariable('result', $ex->getVariable('result', 0) + 7);
 		}));
 		
-		$process = $this->engine->startProcess($builder->build(), [
+		$process = $this->processEngine->startProcess($builder->build(), [
 			'a' => $a,
 			'b' => $b
 		]);
@@ -144,13 +118,13 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('start')->initial();
 		$builder->transition('t1', 'start', 'A')
-				->trigger(new ExpressionTrigger($this->exp('#{ proceed ? true : false }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ proceed ? true : false }')));
 		
 		$builder->node('A')->behavior(new CallbackBehavior(function(Execution $execution) {
 			$execution->setVariable('done', true);
 		}));
 		
-		$process = $this->engine->startProcess($builder->build(), [
+		$process = $this->processEngine->startProcess($builder->build(), [
 			'proceed' => $proceed
 		]);
 		
@@ -184,20 +158,20 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('end');
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
-		$this->assertEquals(1, $this->engine->countWaiting($process));
-		$this->assertEquals(2, $this->engine->countConcurrent($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
+		$this->assertEquals(2, $this->processEngine->countConcurrent($process));
 		
-		$waiting = $this->engine->findWaitingExecutions($process)[0];
+		$waiting = $this->processEngine->findWaitingExecutions($process)[0];
 		$this->assertEquals('A', $waiting->getNode()->getId());
 		
 		$waiting->signal();
 		$this->assertFalse($process->isTerminated());
-		$this->assertEquals(1, $this->engine->countWaiting($process));
-		$this->assertEquals(1, $this->engine->countConcurrent($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
+		$this->assertEquals(1, $this->processEngine->countConcurrent($process));
 		
-		$waiting = $this->engine->findWaitingExecutions($process)[0];
+		$waiting = $this->processEngine->findWaitingExecutions($process)[0];
 		$this->assertEquals('C', $waiting->getNode()->getId());
 		
 		$waiting->signal();
@@ -233,7 +207,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('a')->behavior($behavior);
 		$builder->node('b')->behavior($behavior);
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
 		$this->assertTrue($process->isActive());
 		$this->assertTrue($process->isWaiting());
@@ -271,7 +245,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('choice')->behavior(new ExclusiveChoiceBehavior('t4'));
 		$builder->transition('t3', 'choice', 'discount')
-				->trigger(new ExpressionTrigger($this->exp('#{ amount >= 200 }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ amount >= 200 }')));
 		$builder->transition('t4', 'choice', 'join');
 		
 		$builder->node('discount')->behavior(new CallbackBehavior(function(Execution $execution) {
@@ -292,7 +266,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$this->assertEmpty($builder->validate());
 	
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
 		$this->assertTrue($process->isActive());
 		$this->assertTrue($process->isWaiting());
@@ -334,9 +308,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('gate')->behavior(new InclusiveChoiceBehavior('t5'));
 		$builder->transition('t3', 'gate', 'A')
-				->trigger(new ExpressionTrigger($this->exp('#{num > threshold}')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{num > threshold}')));
 		$builder->transition('t4', 'gate', 'B')
-				->trigger(new ExpressionTrigger($this->exp('#{num == threshold}')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{num == threshold}')));
 		$builder->transition('t5', 'gate', 'C');
 		
 		$callback = new CallbackBehavior(function(Execution $execution) {
@@ -347,7 +321,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('B')->behavior($callback);
 		$builder->node('C')->behavior($callback);
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
 		$this->assertTrue($process->isWaiting());
 		$process->setVariable('num', $num);
@@ -370,9 +344,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('fork')->behavior(new InclusiveChoiceBehavior('t2'));
 		$builder->transition('t2', 'fork', 'A');
 		$builder->transition('t3', 'fork', 'B')
-				->trigger(new ExpressionTrigger($this->exp('#{ num > 5 }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ num > 5 }')));
 		$builder->transition('t4', 'fork', 'C')
-				->trigger(new ExpressionTrigger($this->exp('#{ num > 10 }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ num > 10 }')));
 		
 		$builder->node('A')->behavior(new WaitStateBehavior());
 		$builder->transition('t5', 'A', 'join');
@@ -388,15 +362,15 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('end');
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
 		$this->assertTrue($process->isWaiting());
 		$process->setVariable('num', 7);
 		
 		$process->signal();
-		$this->assertEquals(1, $this->engine->countWaiting($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
 		
-		$this->engine->signalAll($process);
+		$this->processEngine->signalAll($process);
 		$this->assertTrue($process->isTerminated());
 	}
 	
@@ -428,7 +402,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$builder->node('end1');
 		$builder->node('end2');
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
 		$this->assertTrue($process->isActive());
 		$this->assertTrue($process->isTerminated());
@@ -476,14 +450,14 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEmpty($builder->validate());
 		$this->assertEquals(0, $counter);
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
 		$this->assertFalse($process->isTerminated());
 		$this->assertFalse($process->isActive());
 		$this->assertFalse($process->isWaiting());
 		$this->assertEquals(0, $counter);
 		
-		$this->engine->signalAll($process);
+		$this->processEngine->signalAll($process);
 		$this->assertTrue($process->isActive());
 		$this->assertTrue($process->isWaiting());
 		
@@ -532,13 +506,13 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('end');
 		
-		$process = $this->engine->startProcess(unserialize(serialize($builder->build())));
+		$process = $this->processEngine->startProcess(unserialize(serialize($builder->build())));
 		
-		$this->assertEquals(2, $this->engine->countConcurrent($process));
-		$this->assertEquals(1, $this->engine->countWaiting($process));
-		$waiting = $this->engine->findWaitingExecutions($process)[0];
+		$this->assertEquals(2, $this->processEngine->countConcurrent($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
+		$waiting = $this->processEngine->findWaitingExecutions($process)[0];
 		
-		foreach($this->engine->findConcurrentExecutions($process) as $concurrent)
+		foreach($this->processEngine->findConcurrentExecutions($process) as $concurrent)
 		{
 			if(!$concurrent->isWaiting())
 			{
@@ -554,11 +528,11 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertFalse($waiting->isTerminated());
 		
 		$waiting->signal();
-		$this->assertEquals(2, $this->engine->countConcurrent($process));
-		$this->assertEquals(1, $this->engine->countWaiting($process));
-		$waiting = $this->engine->findWaitingExecutions($process)[0];
+		$this->assertEquals(2, $this->processEngine->countConcurrent($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
+		$waiting = $this->processEngine->findWaitingExecutions($process)[0];
 		
-		foreach($this->engine->findConcurrentExecutions($process) as $concurrent)
+		foreach($this->processEngine->findConcurrentExecutions($process) as $concurrent)
 		{
 			if(!$concurrent->isWaiting())
 			{
@@ -578,8 +552,8 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		$this->assertTrue($process->isActive());
 		$this->assertFalse($process->isWaiting());
 		
-		$this->assertEquals(0, $this->engine->countConcurrent($process));
-		$this->assertEquals(0, $this->engine->countWaiting($process));
+		$this->assertEquals(0, $this->processEngine->countConcurrent($process));
+		$this->assertEquals(0, $this->processEngine->countWaiting($process));
 	}
 	
 	public function testExclusiveParallelMerge()
@@ -613,7 +587,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('x2')->behavior(new ExclusiveChoiceBehavior('t13'));
 		$builder->transition('t10', 'x2', 'p3')
-				->trigger(new ExpressionTrigger($this->exp('#{ reject }')));
+				->trigger(new ExpressionTrigger($this->parseExp('#{ reject }')));
 		$builder->transition('t13', 'x2', 'E');
 		
 		$builder->node('p3');
@@ -625,18 +599,18 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('end');
 		
-		$process = $this->engine->startProcess($builder->build(), [
+		$process = $this->processEngine->startProcess($builder->build(), [
 			'reject' => true
 		]);
 		
-		$this->assertEquals(1, $this->engine->countWaiting($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
 		
-		$this->engine->signalAll($process);
+		$this->processEngine->signalAll($process);
 		$process->removeVariable('reject');
 		
-		$this->assertEquals(1, $this->engine->countWaiting($process));
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
 		
-		$this->engine->signalAll($process);
+		$this->processEngine->signalAll($process);
 		$this->assertTrue($process->isTerminated());
 	}
 	
@@ -659,9 +633,9 @@ class NodeTest extends \PHPUnit_Framework_TestCase
 		
 		$builder->node('end');
 		
-		$process = $this->engine->startProcess($builder->build());
+		$process = $this->processEngine->startProcess($builder->build());
 		
-		$this->engine->signalAll($process);
+		$this->processEngine->signalAll($process);
 		
 		$this->assertTrue($process->isTerminated());
 	}
