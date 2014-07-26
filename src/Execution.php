@@ -59,6 +59,10 @@ class Execution
 		{
 			$this->state |= self::STATE_SCOPE;
 		}
+		else
+		{
+			$parentExecution->registerChildExecution($this);
+		}
 	}
 	
 	public function __toString()
@@ -138,6 +142,22 @@ class Execution
 		{
 			$this->parentExecution->childExecutionTerminated($this);
 		}
+	}
+	
+	/**
+	 * Register the given child execution with the parent execution.
+	 * 
+	 * @param Execution $execution
+	 * @return Execution
+	 */
+	protected function registerChildExecution(Execution $execution)
+	{
+		if(!in_array($execution, $this->childExecutions, true))
+		{
+			$this->childExecutions[] = $execution;
+		}
+		
+		return $execution;
 	}
 	
 	/**
@@ -260,7 +280,7 @@ class Execution
 			'execution' => (string)$execution
 		]);
 		
-		return $this->childExecutions[] = $execution;
+		return $execution;
 	}
 	
 	/**
