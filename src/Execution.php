@@ -14,6 +14,7 @@ namespace KoolKode\Process;
 use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\Command\CallbackCommand;
+use KoolKode\Process\Event\CreateExpressionContextEvent;
 use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;
@@ -102,7 +103,10 @@ class Execution
 	 */
 	public function getExpressionContext()
 	{
-		return $this->engine->getExpressionContextFactory()->createContext($this);
+		$access = new ExecutionAccess($this);
+		$this->engine->notify(new CreateExpressionContextEvent($access));
+		
+		return $this->engine->getExpressionContextFactory()->createContext($access);
 	}
 	
 	/**

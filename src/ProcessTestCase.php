@@ -57,10 +57,7 @@ abstract class ProcessTestCase extends \PHPUnit_Framework_TestCase
 		$this->expressionParser = new ExpressionParser($lexer);
 		$this->eventDispatcher = new EventDispatcher();
 	
-		$factory = new ExpressionContextFactory();
-		$factory->getResolvers()->registerResolver(new ExecutionExpressionResolver());
-	
-		$this->processEngine = new TestEngine($this->eventDispatcher, $factory);
+		$this->processEngine = new TestEngine($this->eventDispatcher, new ExpressionContextFactory());
 		$this->processEngine->setLogger($logger);
 	}
 	
