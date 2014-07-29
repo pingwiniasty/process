@@ -18,6 +18,7 @@ use KoolKode\Expression\Parser\ExpressionParser;
 use KoolKode\Process\Behavior\CallbackBehavior;
 use KoolKode\Process\Behavior\ExclusiveChoiceBehavior;
 use KoolKode\Process\Behavior\InclusiveChoiceBehavior;
+use KoolKode\Process\Behavior\NestedProcessBehavior;
 use KoolKode\Process\Behavior\SyncBehavior;
 use KoolKode\Process\Behavior\WaitStateBehavior;
 use KoolKode\Process\Command\CallbackCommand;
@@ -692,5 +693,56 @@ class ProcessEngineTest extends ProcessTestCase
 		}
 		
 		$this->assertTrue($process->isTerminated());
+	}
+	
+	public function testNestedScopeExecution()
+	{
+		$sub = new ProcessBuilder('Sub Process');
+		
+		$sub->node('s2')->initial();
+		$sub->transition('t3', 's2', 'B');
+		
+		$sub->node('B')->behavior(new WaitStateBehavior());
+		$sub->transition('t4', 'B', 'e2');
+		
+		$sub->node('e2');
+		
+		$builder = new ProcessBuilder('Nested Scope Execution');
+		
+		$builder->node('s1')->initial();
+		$builder->transition('t1', 's1', 'A');
+		
+		$builder->node('A')->behavior(new WaitStateBehavior());
+		$builder->transition('t2', 'A', 'sub');
+		
+		$builder->node('sub')->behavior(new NestedProcessBehavior(
+			$sub->build(),
+			['tmp' => 'subject'],
+			['subject' => 'tmp']
+		));
+		$builder->transition('t5', 'sub', 'e1');
+		
+		$builder->node('e1');
+		
+		$process = $this->processEngine->startProcess($builder->build());
+		$process->signal(NULL, ['subject' => 'hello']);
+		
+		$executions = $process->findChildExecutions();
+		$this->assertCount(1, $executions);
+		
+		$nested = array_shift($executions);
+		$this->assertTrue($nested instanceof Execution);
+		$this->assertEquals('B', $nested->getNode()->getId());
+		$this->assertEquals('t3', $nested->getTransition()->getId());
+		
+		$this->assertEquals('hello', $process->getVariable('subject'));
+		$this->assertEquals('hello', $nested->getVariable('tmp'));
+		
+		$nested->signal(NULL, ['tmp' => 'world']);
+		$this->assertTrue($nested->isTerminated());
+		$this->assertTrue($process->isTerminated());
+		
+		$this->assertEquals('world', $nested->getVariable('tmp'));
+		$this->assertEquals('world', $process->getVariable('subject'));
 	}
 }

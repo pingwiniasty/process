@@ -171,6 +171,8 @@ class Execution
 	 */
 	protected function childExecutionTerminated(Execution $execution)
 	{
+		$scope = $execution->isScope();
+		
 		foreach($this->childExecutions as $index => $exec)
 		{
 			if($exec === $execution)
@@ -178,6 +180,18 @@ class Execution
 				unset($this->childExecutions[$index]);
 		
 				break;
+			}
+		}
+		
+		if(empty($this->childExecutions) && $scope)
+		{
+			if($this->isWaiting())
+			{
+				$this->signal(NULL, ['@execution' => $execution]);
+			}
+			else
+			{
+				$this->takeAll(NULL, [$this]);
 			}
 		}
 	}
@@ -280,8 +294,22 @@ class Execution
 		}
 		
 		$this->engine->registerExecution($execution);
-		$this->engine->debug('Created {execution}', [
+		$this->engine->debug(sprintf('Created %s{execution}', $concurrent ? 'concurrent ' : ''), [
 			'execution' => (string)$execution
+		]);
+		
+		return $execution;
+	}
+	
+	public function createNestedExecution(ProcessDefinition $model)
+	{
+		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
+		$execution->setState(self::STATE_SCOPE, true);
+		
+		$this->engine->registerExecution($execution);
+		$this->engine->debug('Created nested {execution} from {parent}', [
+			'execution' => (string)$execution,
+			'parent' => (string)$this
 		]);
 		
 		return $execution;
@@ -776,7 +804,7 @@ class Execution
 			
 					return $this->parentExecution->terminate();
 				}
-					
+				
 				return;
 			}
 			
