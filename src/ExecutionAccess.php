@@ -14,8 +14,7 @@ namespace KoolKode\Process;
 use KoolKode\Expression\ExpressionAccessInterface;
 
 /**
- * Proxies expression access to an execution and allows for additional virtual
- * scope variables.
+ * Proxies expression access to an execution and allows for additional virtual variables.
  * 
  * @author Martin Schröder
  */

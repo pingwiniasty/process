@@ -54,5 +54,10 @@ interface EngineInterface extends LoggerInterface
 	 */
 	public function executeCommand(CommandInterface $command);
 	
+	/**
+	 * Register an execution with the process engine, very helpful in implementing persistence.
+	 * 
+	 * @param Execution $execution
+	 */
 	public function registerExecution(Execution $execution);
 }

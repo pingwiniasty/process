@@ -695,7 +695,18 @@ class ProcessEngineTest extends ProcessTestCase
 		$this->assertTrue($process->isTerminated());
 	}
 	
-	public function testNestedScopeExecution()
+	public function provideScopeIsolationFlag()
+	{
+		return [
+			[true],
+			[false]
+		];
+	}
+	
+	/**
+	 * @dataProvider provideScopeIsolationFlag
+	 */
+	public function testNestedScopeExecution($isolate)
 	{
 		$sub = new ProcessBuilder('Sub Process');
 		
@@ -717,6 +728,7 @@ class ProcessEngineTest extends ProcessTestCase
 		
 		$builder->node('sub')->behavior(new NestedProcessBehavior(
 			$sub->build(),
+			$isolate,
 			['tmp' => 'subject'],
 			['subject' => 'tmp']
 		));
@@ -744,5 +756,20 @@ class ProcessEngineTest extends ProcessTestCase
 		
 		$this->assertEquals('world', $nested->getVariable('tmp'));
 		$this->assertEquals('world', $process->getVariable('subject'));
+		
+		if($isolate)
+		{
+			$this->assertFalse($nested->hasVariableLocal('subject'));
+			$this->assertTrue($nested->hasVariableLocal('tmp'));
+			$this->assertTrue($process->hasVariableLocal('subject'));
+			$this->assertFalse($process->hasVariableLocal('tmp'));
+		}
+		else
+		{
+			$this->assertFalse($nested->hasVariableLocal('subject'));
+			$this->assertFalse($nested->hasVariableLocal('tmp'));
+			$this->assertTrue($process->hasVariableLocal('subject'));
+			$this->assertTrue($process->hasVariableLocal('tmp'));
+		}
 	}
 }

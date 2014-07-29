@@ -34,6 +34,7 @@ class Execution
 	const STATE_ACTIVE = 4;
 	const STATE_CONCURRENT = 8;
 	const STATE_TERMINATE = 16;
+	const STATE_SCOPE_ROOT = 32;
 	
 	protected $id;
 	protected $state = self::STATE_ACTIVE;
@@ -58,7 +59,7 @@ class Execution
 		
 		if($parentExecution === NULL)
 		{
-			$this->state |= self::STATE_SCOPE;
+			$this->state |= self::STATE_SCOPE | self::STATE_SCOPE_ROOT;
 		}
 		else
 		{
@@ -171,6 +172,7 @@ class Execution
 	 */
 	protected function childExecutionTerminated(Execution $execution)
 	{
+		$removed = false;
 		$scope = $execution->isScope();
 		
 		foreach($this->childExecutions as $index => $exec)
@@ -178,12 +180,13 @@ class Execution
 			if($exec === $execution)
 			{
 				unset($this->childExecutions[$index]);
+				$removed = true;
 		
 				break;
 			}
 		}
 		
-		if(empty($this->childExecutions) && $scope)
+		if(empty($this->childExecutions) && $scope && $removed)
 		{
 			if($this->isWaiting())
 			{
@@ -268,6 +271,16 @@ class Execution
 	}
 	
 	/**
+	 * Check if this execution is a scope for root variables.
+	 *
+	 * @return boolean
+	 */
+	public function isScopeRoot()
+	{
+		return 0 != ($this->state & self::STATE_SCOPE_ROOT);
+	}
+	
+	/**
 	 * Get the parent execution of this execution.
 	 * 
 	 * @return Execution or NULL if this execution is a root execution.
@@ -301,10 +314,11 @@ class Execution
 		return $execution;
 	}
 	
-	public function createNestedExecution(ProcessDefinition $model)
+	public function createNestedExecution(ProcessDefinition $model, $isRootScope = true)
 	{
 		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
 		$execution->setState(self::STATE_SCOPE, true);
+		$execution->setState(self::STATE_SCOPE_ROOT, $isRootScope);
 		
 		$this->engine->registerExecution($execution);
 		$this->engine->debug('Created nested {execution} from {parent}', [
@@ -408,6 +422,21 @@ class Execution
 	}
 	
 	/**
+	 * Get the execution that is the root scope of this execution.
+	 * 
+	 * @return Execution
+	 */
+	public function getScopeRoot()
+	{
+		if($this->parentExecution === NULL || $this->state & self::STATE_SCOPE_ROOT)
+		{
+			return $this;
+		}
+		
+		return $this->parentExecution->getScopeRoot();
+	}
+	
+	/**
 	 * Check if the given variable is set in the current scope.
 	 * 
 	 * @param string $name
@@ -415,12 +444,37 @@ class Execution
 	 */
 	public function hasVariable($name)
 	{
-		if($this->state & self::STATE_SCOPE)
+		return $this->getScopeRoot()->hasVariableLocal($name);
+	}
+	
+	/**
+	 * Check if the given variable is set in the current scope.
+	 *
+	 * @param string $name
+	 * @return boolean
+	 */
+	public function hasVariableLocal($name)
+	{
+		return array_key_exists($name, $this->variables);
+	}
+	
+	/**
+	 * Get the value of the given variable in the current scope.
+	 *
+	 * @param string $name
+	 * @param mixed $default
+	 * @return mixed
+	 *
+	 * @throws \OutOfBoundsException When the variable is not set and no default value is given.
+	 */
+	public function getVariable($name)
+	{
+		if(func_num_args() > 1)
 		{
-			return array_key_exists($name, $this->variables);
+			return $this->getScopeRoot()->getVariableLocal($name, func_get_arg(1));
 		}
 		
-		return $this->parentExecution->hasVariable($name);
+		return $this->getScopeRoot()->getVariableLocal($name);
 	}
 	
 	/**
@@ -432,31 +486,31 @@ class Execution
 	 * 
 	 * @throws \OutOfBoundsException When the variable is not set and no default value is given.
 	 */
-	public function getVariable($name)
+	public function getVariableLocal($name)
 	{
-		if($this->state & self::STATE_SCOPE)
+		if(array_key_exists($name, $this->variables))
 		{
-			if(array_key_exists($name, $this->variables))
-			{
-				return $this->variables[$name];
-			}
-			
-			if(func_num_args() > 1)
-			{
-				return func_get_arg(1);
-			}
-			
-			throw new \OutOfBoundsException(sprintf('Variable "%s" not set in scope', $name));
+			return $this->variables[$name];
 		}
 		
 		if(func_num_args() > 1)
 		{
-			return $this->parentExecution->getVariable($name, func_get_arg(1));
+			return func_get_arg(1);
 		}
-		else
-		{
-			return $this->parentExecution->getVariable($name);	
-		}
+		
+		throw new \OutOfBoundsException(sprintf('Variable "%s" not set in scope', $name));
+	}
+	
+	/**
+	 * Set the given variable in the current scope, setting a variable to a value of NULL will
+	 * remove the variable from the current scope.
+	 *
+	 * @param string $name
+	 * @param mixed $value
+	 */
+	public function setVariable($name, $value)
+	{
+		return $this->getScopeRoot()->setVariableLocal($name, $value);
 	}
 	
 	/**
@@ -466,28 +520,29 @@ class Execution
 	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function setVariable($name, $value)
+	public function setVariableLocal($name, $value)
 	{
-		if($this->state & self::STATE_SCOPE)
+		if($value === NULL)
 		{
-			if($value === NULL)
-			{
-				$this->removeVariable($name);
-			}
-			else
-			{
-				$this->variables[$name] = $value;
-				
-				$this->engine->debug('Set variable {var} in {execution}', [
-					'var' => (string)$name,
-					'execution' => (string)$this
-				]);
-			}
+			return $this->removeVariableLocal($name);
 		}
-		else
-		{
-			$this->parentExecution->setVariable($name, $value);
-		}
+		
+		$this->variables[$name] = $value;
+		
+		$this->engine->debug('Set variable {var} in {execution}', [
+			'var' => (string)$name,
+			'execution' => (string)$this
+		]);
+	}
+	
+	/**
+	 * Remove the given variable from the current scope.
+	 *
+	 * @param string $name
+	 */
+	public function removeVariable($name)
+	{
+		return $this->getScopeRoot()->removeVariableLocal($name);
 	}
 	
 	/**
@@ -495,29 +550,22 @@ class Execution
 	 * 
 	 * @param string $name
 	 */
-	public function removeVariable($name)
+	public function removeVariableLocal($name)
 	{
-		if($this->state & self::STATE_SCOPE)
-		{
-			unset($this->variables[$name]);
-			
-			$this->engine->debug('Removed variable {var} from {execution}', [
-				'var' => (string)$name,
-				'execution' => (string)$this
-			]);
-		}
-		else
-		{
-			$this->parentExecution->removeVariable($name);
-		}
+		unset($this->variables[$name]);
+		
+		$this->engine->debug('Removed variable {var} from {execution}', [
+			'var' => (string)$name,
+			'execution' => (string)$this
+		]);
 	}
 	
-	public function getVariables()
+	public function getVariablesLocal()
 	{
 		return (array)$this->variables;
 	}
 	
-	public function setVariables(array $variables)
+	public function setVariablesLocal(array $variables)
 	{
 		$this->variables = $variables;
 	}

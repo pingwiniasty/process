@@ -14,8 +14,6 @@ namespace KoolKode\Process\Behavior;
 use KoolKode\Process\Execution;
 use KoolKode\Process\ProcessDefinition;
 
-// TODO: Local variable scopes in executions are isolated and working by default, need additional inherited scope for root process.
-
 /**
  * Allows for nested execution of another process from a parent process.
  * 
@@ -25,13 +23,16 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 {
 	protected $process;
 	
+	protected $isolateScope;
+	
 	protected $inputs;
 	
 	protected $outputs;
 	
-	public function __construct(ProcessDefinition $process, array $inputs = [], array $outputs = [])
+	public function __construct(ProcessDefinition $process, $isolateScope = true, array $inputs = [], array $outputs = [])
 	{
 		$this->process = $process;
+		$this->isolateScope = $isolateScope ? true : false;
 		$this->inputs = $inputs;
 		$this->outputs = $outputs;
 	}
@@ -45,7 +46,7 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 			throw new \RuntimeException(sprintf('No single start node found in process "%s"', $this->process->getTitle()));
 		}
 		
-		$sub = $execution->createNestedExecution($this->process);
+		$sub = $execution->createNestedExecution($this->process, $this->isolateScope);
 		
 		foreach($this->inputs as $target => $source)
 		{
