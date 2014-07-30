@@ -729,6 +729,25 @@ class Execution
 		
 		$this->engine->pushCommand(new CallbackCommand(function() use($transition) {
 			
+			if($this->isConcurrent())
+			{
+				if(1 === count($this->findConcurrentExecutions()))
+				{
+					$this->terminate();
+			
+					$this->parentExecution->node = $this->node;
+					$this->parentExecution->transition = $this->transition;
+					$this->parentExecution->setActive(true);
+					
+					$this->engine->debug('Merged concurrent {execution} into {root}', [
+						'execution' => (string)$this,
+						'root' => (string)$this->parentExecution
+					]);
+			
+					return $this->parentExecution->take($transition);
+				}
+			}
+			
 			if($transition instanceof Transition)
 			{
 				$transition = $transition->getId();
@@ -813,6 +832,36 @@ class Execution
 		}
 		
 		$this->engine->pushCommand(new CallbackCommand(function() use($transitions, $recycle) {
+			
+			if($this->isConcurrent())
+			{
+				if(1 === count($this->findConcurrentExecutions()))
+				{
+					foreach($recycle as $rec)
+					{
+						foreach($recycle as $rec)
+						{
+							$rec->terminate();
+						}
+							
+						if(!$this->isTerminated())
+						{
+							$this->terminate();
+						}
+					}
+						
+					$this->parentExecution->node = $this->node;
+					$this->parentExecution->transition = $this->transition;
+					$this->parentExecution->setActive(true);
+					
+					$this->engine->debug('Merged concurrent {execution} into {root}', [
+						'execution' => (string)$this,
+						'root' => (string)$this->parentExecution
+					]);
+						
+					return $this->parentExecution->takeAll($transitions);
+				}
+			}
 			
 			if($transitions === NULL)
 			{
@@ -937,6 +986,38 @@ class Execution
 				$out[0]->take($out[1]);
 			}
 		}));
+	}
+	
+	public function introduceConcurrentRoot($active = false)
+	{
+		$parent = $this->parentExecution;
+	
+		$root = new static(UUID::createRandom(), $this->engine, $this->processDefinition, $parent);
+		$root->setActive($active);
+		$root->variables = $this->variables;
+		$root->setState(self::STATE_SCOPE, true);
+		$root->setState(self::STATE_SCOPE_ROOT, $this->isScopeRoot());
+	
+		if($parent !== NULL)
+		{
+			foreach($parent->childExecutions as $index => $exec)
+			{
+				if($exec === $this)
+				{
+					unset($parent->childExecutions[$index]);
+				}
+			}
+		}
+	
+		$this->setParentExecution($root);
+		$this->setState(self::STATE_CONCURRENT, true);
+		$this->setState(self::STATE_SCOPE, false);
+		$this->setState(self::STATE_SCOPE_ROOT, false);
+		$this->variables = [];
+	
+		$this->engine->registerExecution($root);
+	
+		return $root;
 	}
 	
 	protected function hasState($state)
