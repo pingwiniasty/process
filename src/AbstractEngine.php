@@ -140,17 +140,11 @@ abstract class AbstractEngine implements EngineInterface
 	 */
 	public function executeCommand(CommandInterface $command)
 	{
-		$this->storeCommand($command);
+		$priority = $command->getPriority();
 		
-		while(!empty($this->commands))
+		while(!empty($this->commands) && $this->commands[0]->getPriority() >= $priority)
 		{
 			$cmd = array_shift($this->commands);
-			
-			if($cmd === $command)
-			{
-				break;
-			}
-			
 			$cmd->execute($this);
 		}
 		
