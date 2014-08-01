@@ -645,7 +645,16 @@ class Execution
 			]);
 			$this->engine->notify(new EnterNodeEvent($this->node, $this));
 			
-			$this->node->getBehavior()->execute($this);
+			$behavior = $this->node->getBehavior();
+			
+			if($behavior === NULL)
+			{
+				$this->takeAll(NULL, [$this]);
+			}
+			else
+			{
+				$behavior->execute($this);
+			}
 		}));
 	}
 	

@@ -12,7 +12,6 @@
 namespace KoolKode\Process;
 
 use KoolKode\Process\Behavior\BehaviorInterface;
-use KoolKode\Process\Behavior\CallbackBehavior;
 
 /**
  * A node is process element that is comparable to a place in a Petri-Net.
@@ -46,20 +45,12 @@ class Node extends Item
 	}
 	
 	/**
-	 * Get the node's behavior, will return a callback behavior that is connected to
-	 * an empty closure when no custom behavior has been specified.
+	 * Get the node's behavior or NULL when no custom behavior is available.
 	 * 
 	 * @return BehaviorInterface
 	 */
 	public function getBehavior()
 	{
-		if($this->behavior === NULL)
-		{
-			return new CallbackBehavior(function(Execution $execution) {
-				// NOOP...
-			});
-		}
-		
 		return $this->behavior;
 	}
 	
