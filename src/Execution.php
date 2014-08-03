@@ -307,8 +307,9 @@ class Execution
 		}
 		
 		$this->engine->registerExecution($execution);
-		$this->engine->debug(sprintf('Created %s{execution}', $concurrent ? 'concurrent ' : ''), [
-			'execution' => (string)$execution
+		$this->engine->debug(sprintf('Created %s{execution} from {parent}', $concurrent ? 'concurrent ' : ''), [
+			'execution' => (string)$execution,
+			'parent' => (string)$this
 		]);
 		
 		return $execution;
@@ -703,8 +704,8 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->setState(self::STATE_WAIT, false);
 			
-			$this->engine->debug('Signaling {signal} to {execution}', [
-				'signal' => $signal,
+			$this->engine->debug('Signaling <{signal}> to {execution}', [
+				'signal' => ($signal === NULL) ? 'NULL' : $signal,
 				'execution' => (string)$this
 			]);
 			
@@ -999,6 +1000,10 @@ class Execution
 	
 	public function introduceConcurrentRoot($active = false)
 	{
+		$this->engine->debug('Introducing concurrent root into {execution}', [
+			'execution' => (string)$this
+		]);
+		
 		$parent = $this->parentExecution;
 	
 		$root = new static(UUID::createRandom(), $this->engine, $this->processDefinition, $parent);
