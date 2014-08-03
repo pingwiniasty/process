@@ -124,8 +124,10 @@ class Execution
 	
 	/**
 	 * Terminate this path of execution, will also terminate all child executions.
+	 * 
+	 * @param boolean $triggerExecution Trigger / signal parent execution after termination?
 	 */
-	public function terminate()
+	public function terminate($triggerExecution = true)
 	{
 		$this->state |= self::STATE_TERMINATE;
 		
@@ -137,7 +139,7 @@ class Execution
 		{
 			if(!$execution->isTerminated())
 			{
-				$execution->terminate();
+				$execution->terminate(false);
 			}
 		}
 		
@@ -147,7 +149,7 @@ class Execution
 		}
 		else
 		{
-			$this->parentExecution->childExecutionTerminated($this);
+			$this->parentExecution->childExecutionTerminated($this, $triggerExecution);
 		}
 	}
 	
@@ -171,8 +173,9 @@ class Execution
 	 * Is being used to notify a parent execution whenever a child execution has been terminated.
 	 * 
 	 * @param Execution $execution
+	 * @param boolean $triggerExecution Trigger / signal this execution?
 	 */
-	protected function childExecutionTerminated(Execution $execution)
+	protected function childExecutionTerminated(Execution $execution, $triggerExecution = true)
 	{
 		$removed = false;
 		$scope = $execution->isScope();
@@ -188,7 +191,7 @@ class Execution
 			}
 		}
 		
-		if(empty($this->childExecutions) && $scope && $removed)
+		if(empty($this->childExecutions) && $scope && $removed && $triggerExecution)
 		{
 			if($this->isWaiting())
 			{
@@ -317,6 +320,13 @@ class Execution
 		return $execution;
 	}
 	
+	/**
+	 * Create a nested execution as child execution.
+	 * 
+	 * @param ProcessDefinition $model
+	 * @param boolean $isRootScope
+	 * @return Execution
+	 */
 	public function createNestedExecution(ProcessDefinition $model, $isRootScope = true)
 	{
 		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
@@ -1000,6 +1010,12 @@ class Execution
 		}));
 	}
 	
+	/**
+	 * Introduce a new concurrent root as parent of this execution.
+	 * 
+	 * @param boolean $active
+	 * @return Execution
+	 */
 	public function introduceConcurrentRoot($active = false)
 	{
 		$this->engine->debug('Introducing concurrent root into {execution}', [
