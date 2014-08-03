@@ -75,4 +75,14 @@ class ProcessBuilder
 	{
 		return new ProcessDefinition($this->items, $this->title);
 	}
+	
+	public function append(ProcessBuilder $builder)
+	{
+		foreach($builder->items as $id => $item)
+		{
+			$this->items[$id] = $item;
+		}
+		
+		return $this;
+	}
 }
