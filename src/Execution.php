@@ -28,6 +28,8 @@ use KoolKode\Util\UUID;
  */
 class Execution
 {
+	const KEY_EXECUTION = '@execution';
+	
 	const STATE_NONE = 0;
 	const STATE_WAIT = 1;
 	const STATE_SCOPE = 2;
@@ -190,7 +192,7 @@ class Execution
 		{
 			if($this->isWaiting())
 			{
-				$this->signal(NULL, ['@execution' => $execution]);
+				$this->signal(NULL, [self::KEY_EXECUTION => $execution]);
 			}
 			else
 			{
