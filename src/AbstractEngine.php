@@ -50,6 +50,13 @@ abstract class AbstractEngine implements EngineInterface
 	protected $commands = [];
 	
 	/**
+	 * Holds deferred commands pushed during the current execution.
+	 * 
+	 * @var array<CommandInterface>
+	 */
+	protected $deferred = [];
+	
+	/**
 	 * Delegate logger being used by the engine, can be NULL!
 	 * 
 	 * @var LoggerInterface
@@ -138,6 +145,19 @@ abstract class AbstractEngine implements EngineInterface
 	/**
 	 * {@inheritdoc}
 	 */
+	public function pushDeferredCommand(CommandInterface $command)
+	{
+		if($this->executionDepth == 0)
+		{
+			return $this->pushCommand($command);
+		}
+		
+		$this->deferred[] = $command;
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function executeCommand(CommandInterface $command)
 	{
 		$priority = $command->getPriority();
@@ -148,15 +168,19 @@ abstract class AbstractEngine implements EngineInterface
 			$cmd->execute($this);
 		}
 		
-		$tmp = $this->commands;
+		$commands = $this->commands;
 		$this->commands = [];
+		
+		$deferred = $this->deferred;
+		$this->deferred = [];
 		
 		try
 		{
-			$result = $this->performExecution(function() use($command) {
+			return $this->performExecution(function() use($command) {
+				
+				$result = $command->execute($this);
 				
 				$this->executionCount++;
-				$result = $command->execute($this);
 				
 				while(!empty($this->commands))
 				{
@@ -171,10 +195,22 @@ abstract class AbstractEngine implements EngineInterface
 		}
 		finally
 		{
-			$this->commands = $tmp;	
-		}
+			$this->commands = $commands;
 			
-		return $result;
+			if(!empty($this->deferred))
+			{
+				$this->debug('Pushing {count} deferred commands to the engine', [
+					'count' => count($this->deferred)
+				]);
+			}
+			
+			foreach($this->deferred as $cmd)
+			{
+				$this->pushCommand($cmd);
+			}
+			
+			$this->deferred = $deferred;	
+		}
 	}
 	
 	/**
