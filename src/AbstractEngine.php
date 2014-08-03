@@ -171,9 +171,6 @@ abstract class AbstractEngine implements EngineInterface
 		$commands = $this->commands;
 		$this->commands = [];
 		
-		$deferred = $this->deferred;
-		$this->deferred = [];
-		
 		try
 		{
 			return $this->performExecution(function() use($command) {
@@ -196,20 +193,6 @@ abstract class AbstractEngine implements EngineInterface
 		finally
 		{
 			$this->commands = $commands;
-			
-			if(!empty($this->deferred))
-			{
-				$this->debug('Pushing {count} deferred commands to the engine', [
-					'count' => count($this->deferred)
-				]);
-			}
-			
-			foreach($this->deferred as $cmd)
-			{
-				$this->pushCommand($cmd);
-			}
-			
-			$this->deferred = $deferred;	
 		}
 	}
 	
@@ -249,6 +232,9 @@ abstract class AbstractEngine implements EngineInterface
 	 */
 	protected function performExecution(callable $callback)
 	{
+		$deferred = $this->deferred;
+		$this->deferred = [];
+		
 		$this->executionDepth++;
 		
 		$count = $this->executionCount;
@@ -268,6 +254,31 @@ abstract class AbstractEngine implements EngineInterface
 			
 			$this->executionDepth--;
 			$this->executionCount = $count;
+			
+			if(!empty($this->deferred))
+			{
+				foreach($this->deferred as $cmd)
+				{
+					$this->storeCommand($cmd);
+				}
+			
+				$this->debug('Pushed {count} deferred commands to the engine', [
+					'count' => count($this->deferred)
+				]);
+			
+				$this->performExecution(function() {
+						
+					while(!empty($this->commands))
+					{
+						$cmd = array_shift($this->commands);
+						$cmd->execute($this);
+							
+						$this->executionCount++;
+					}
+				});
+			}
+			
+			$this->deferred = $deferred;
 		}
 	}
 }
