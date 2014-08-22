@@ -78,6 +78,25 @@ class Execution
 		
 		return sprintf('execution(%s)', $this->id);
 	}
+	
+	public function __debugInfo()
+	{
+		$data = get_object_vars($this);
+		
+		unset($data['engine']);
+		unset($data['processDefinition']);
+		
+		if($this->parentExecution instanceof Execution)
+		{
+			$data['parentExecution'] = $this->parentExecution->getId();
+		}
+		
+		$data['childExecutions'] = array_map(function(Execution $exec) {
+			return $exec->getId();
+		}, $this->childExecutions);
+		
+		return $data;
+	}
 
 	/**
 	 * Get the globally unique identifier of this execution.
