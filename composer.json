@@ -27,7 +27,12 @@
 	},
 	"autoload" : {
 		"psr-4" : {
-			"KoolKode\\Process\\" : "src"
+			"KoolKode\\Process\\" : "src/"
 		}
-	}
+	},
+	"autoload-dev" : {
+        "psr-4" : {
+            "KoolKode\\Process\\" : "test/src/"
+        }
+    }
 }

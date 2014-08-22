@@ -13,7 +13,7 @@ install:
   - 'composer install --no-interaction --dev --prefer-source'
 
 script:
-  - './vendor/bin/phpunit -c "./test/phpunit.xml" --testsuite "unit" --coverage-text'
+  - './vendor/bin/phpunit -c "./test/phpunit.xml" --coverage-text'
 
 notifications:
   email: false
