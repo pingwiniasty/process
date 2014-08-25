@@ -31,6 +31,14 @@ class ProcessDefinition
 		$this->title = trim($title);
 	}
 	
+	public function __clone()
+	{
+		foreach($this->items as & $item)
+		{
+			$item = clone $item;
+		} 
+	}
+	
 	public function getId()
 	{
 		return $this->id;
