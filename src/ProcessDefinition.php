@@ -26,7 +26,7 @@ class ProcessDefinition
 	
 	public function __construct(array $items, $title = '', UUID $id = NULL)
 	{
-		$this->id = $id ?: UUID::createRandom();
+		$this->id = ($id === NULL) ? UUID::createRandom() : $id;
 		$this->items = $items;
 		$this->title = trim($title);
 	}
