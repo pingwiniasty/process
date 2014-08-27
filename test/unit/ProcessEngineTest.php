@@ -659,7 +659,7 @@ class ProcessEngineTest extends ProcessTestCase
 		
 		$builder->node('throw')->behavior(new CallbackBehavior(function(Execution $execution) {
 			
-			$catch = $execution->getProcessDefinition()->findNode('catch');
+			$catch = $execution->getProcessModel()->findNode('catch');
 			$tmp = $execution->findConcurrentExecutions($catch);
 			$this->assertCount(1, $tmp);
 			

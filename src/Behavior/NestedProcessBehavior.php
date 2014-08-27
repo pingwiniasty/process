@@ -12,7 +12,7 @@
 namespace KoolKode\Process\Behavior;
 
 use KoolKode\Process\Execution;
-use KoolKode\Process\ProcessDefinition;
+use KoolKode\Process\ProcessModel;
 
 /**
  * Allows for nested execution of another process from a parent process.
@@ -29,7 +29,7 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 	
 	protected $outputs;
 	
-	public function __construct(ProcessDefinition $process, $isolateScope = true, array $inputs = [], array $outputs = [])
+	public function __construct(ProcessModel $process, $isolateScope = true, array $inputs = [], array $outputs = [])
 	{
 		$this->process = $process;
 		$this->isolateScope = $isolateScope ? true : false;

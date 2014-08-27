@@ -12,8 +12,7 @@
 namespace KoolKode\Process;
 
 /**
- * The process builder is a convenient ultility for programmatic construction of
- * process definitions.
+ * The process builder is a convenient ultility for programmatic construction of process models.
  * 
  * @author Martin Schröder
  */
@@ -67,13 +66,13 @@ class ProcessBuilder
 	}
 	
 	/**
-	 * Build a process definition from registered nodes and transitions.
+	 * Build a process model from registered nodes and transitions.
 	 * 
-	 * @return ProcessDefinition
+	 * @return ProcessModel
 	 */
 	public function build()
 	{
-		return new ProcessDefinition($this->items, $this->title);
+		return new ProcessModel($this->items, $this->title);
 	}
 	
 	public function append(ProcessBuilder $builder)

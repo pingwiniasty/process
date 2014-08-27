@@ -15,7 +15,7 @@ use KoolKode\Process\EngineInterface;
 use KoolKode\Process\Event\StartProcessEvent;
 use KoolKode\Process\Execution;
 use KoolKode\Process\Node;
-use KoolKode\Process\ProcessDefinition;
+use KoolKode\Process\ProcessModel;
 use KoolKode\Util\UUID;
 
 class StartProcessCommand extends AbstractCommand
@@ -26,7 +26,7 @@ class StartProcessCommand extends AbstractCommand
 	
 	protected $variables;
 	
-	public function __construct(ProcessDefinition $model, Node $startNode = NULL, array $variables = [])
+	public function __construct(ProcessModel $model, Node $startNode = NULL, array $variables = [])
 	{
 		$this->model = $model;
 		$this->variables = $variables;

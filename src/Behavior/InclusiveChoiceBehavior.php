@@ -37,7 +37,7 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 		
 		$take = [];
 		
-		foreach($execution->getProcessDefinition()->findOutgoingTransitions($execution->getNode()->getId()) as $trans)
+		foreach($execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId()) as $trans)
 		{
 			if($trans->getId() === $this->defaultTransition)
 			{
@@ -96,8 +96,8 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 			return true;
 		}
 		
-		$def = $execution->getProcessDefinition();
-		$out = $def->findOutgoingTransitions($source->getId());
+		$model = $execution->getProcessModel();
+		$out = $model->findOutgoingTransitions($source->getId());
 		$visited->attach($source);
 		
 		if(empty($out))
@@ -107,7 +107,7 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 		
 		foreach($out as $transition)
 		{
-			$tmp = $def->findNode($transition->getTo());
+			$tmp = $model->findNode($transition->getTo());
 			
 			if(!$visited->contains($tmp))
 			{

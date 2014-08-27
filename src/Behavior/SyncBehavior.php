@@ -25,7 +25,7 @@ class SyncBehavior implements BehaviorInterface
 	{
 		$execution->setActive(false);
 
-		$numberExecutions = count($execution->getProcessDefinition()->findIncomingTransitions($execution->getNode()->getId()));
+		$numberExecutions = count($execution->getProcessModel()->findIncomingTransitions($execution->getNode()->getId()));
 		
 		if($numberExecutions == 1)
 		{

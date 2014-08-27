@@ -29,7 +29,7 @@ class ExclusiveChoiceBehavior implements BehaviorInterface
 	
 	public function execute(Execution $execution)
 	{
-		foreach($execution->getProcessDefinition()->findOutgoingTransitions($execution->getNode()->getId()) as $trans)
+		foreach($execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId()) as $trans)
 		{
 			if($trans->getId() === $this->defaultTransition)
 			{

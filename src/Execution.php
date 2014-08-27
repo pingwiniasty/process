@@ -43,7 +43,7 @@ class Execution
 	protected $timestamp = 0;
 	protected $variables = [];
 	
-	protected $processDefinition;
+	protected $model;
 	protected $transition;
 	protected $node;
 	
@@ -52,11 +52,11 @@ class Execution
 	
 	protected $engine;
 	
-	public function __construct(UUID $id, EngineInterface $engine, ProcessDefinition $processDefinition, Execution $parentExecution = NULL)
+	public function __construct(UUID $id, EngineInterface $engine, ProcessModel $model, Execution $parentExecution = NULL)
 	{
 		$this->id = $id;
 		$this->engine = $engine;
-		$this->processDefinition = $processDefinition;
+		$this->model = $model;
 		$this->parentExecution = $parentExecution;
 		
 		if($parentExecution === NULL)
@@ -84,7 +84,7 @@ class Execution
 		$data = get_object_vars($this);
 		
 		unset($data['engine']);
-		unset($data['processDefinition']);
+		unset($data['model']);
 		
 		if($this->parentExecution instanceof Execution)
 		{
@@ -322,7 +322,7 @@ class Execution
 	 */
 	public function createExecution($concurrent = true)
 	{
-		$execution = new static(UUID::createRandom(), $this->engine, $this->processDefinition, $this);
+		$execution = new static(UUID::createRandom(), $this->engine, $this->model, $this);
 		$execution->setNode($this->node);
 		
 		if($concurrent)
@@ -342,11 +342,11 @@ class Execution
 	/**
 	 * Create a nested execution as child execution.
 	 * 
-	 * @param ProcessDefinition $model
+	 * @param ProcessModel $model
 	 * @param boolean $isRootScope
 	 * @return Execution
 	 */
-	public function createNestedExecution(ProcessDefinition $model, $isRootScope = true)
+	public function createNestedExecution(ProcessModel $model, $isRootScope = true)
 	{
 		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
 		$execution->setState(self::STATE_SCOPE, true);
@@ -643,13 +643,13 @@ class Execution
 	}
 	
 	/**
-	 * Get the definition of the process being executed.
+	 * Get the model of the process being executed.
 	 * 
-	 * @return ProcessDefinition
+	 * @return ProcessModel
 	 */
-	public function getProcessDefinition()
+	public function getProcessModel()
 	{
-		return $this->processDefinition;
+		return $this->model;
 	}
 	
 	/**
@@ -795,7 +795,7 @@ class Execution
 			}
 			
 			$trans = NULL;
-			$out = (array)$this->getProcessDefinition()->findOutgoingTransitions($this->node->getId());
+			$out = (array)$this->getProcessModel()->findOutgoingTransitions($this->node->getId());
 			
 			if($transition === NULL)
 			{
@@ -852,7 +852,7 @@ class Execution
 			$this->timestamp = microtime(true);
 			$this->transition = $trans;
 			
-			$this->execute($this->getProcessDefinition()->findNode($trans->getTo()));
+			$this->execute($this->getProcessModel()->findNode($trans->getTo()));
 		}));
 	}
 	
@@ -906,12 +906,12 @@ class Execution
 			
 			if($transitions === NULL)
 			{
-				$transitions = $this->getProcessDefinition()->findOutgoingTransitions($this->node->getId());
+				$transitions = $this->getProcessModel()->findOutgoingTransitions($this->node->getId());
 			}
 			else
 			{
 				$transitions = array_map(function($trans) {
-					return ($trans instanceof Transition) ? $trans : $this->getProcessDefinition()->findTransition($trans);
+					return ($trans instanceof Transition) ? $trans : $this->getProcessModel()->findTransition($trans);
 				}, $transitions);
 			}
 			
@@ -1043,7 +1043,7 @@ class Execution
 		
 		$parent = $this->parentExecution;
 	
-		$root = new static(UUID::createRandom(), $this->engine, $this->processDefinition, $parent);
+		$root = new static(UUID::createRandom(), $this->engine, $this->model, $parent);
 		$root->setActive($active);
 		$root->variables = $this->variables;
 		$root->setState(self::STATE_SCOPE, true);

@@ -28,9 +28,9 @@ class TestEngine extends AbstractEngine
 		$this->executions[(string)$execution->getId()] = $execution;
 	}
 	
-	public function startProcess(ProcessDefinition $definition, array $variables = [])
+	public function startProcess(ProcessModel $model, array $variables = [])
 	{
-		return $this->executeCommand(new StartProcessCommand($definition, NULL, $variables));
+		return $this->executeCommand(new StartProcessCommand($model, NULL, $variables));
 	}
 	
 	public function countWaiting(Execution $execution, Node $node = NULL)
