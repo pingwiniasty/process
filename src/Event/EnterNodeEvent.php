@@ -12,7 +12,7 @@
 namespace KoolKode\Process\Event;
 
 /**
- * Is triggered whenever an execution arrives at a node.
+ * Is triggered before behavior of a node is executed.
  * 
  * @author Martin Schröder
  */
