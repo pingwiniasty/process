@@ -12,6 +12,7 @@
 namespace KoolKode\Process;
 
 use KoolKode\Expression\ExpressionAccessInterface;
+use KoolKode\Expression\InspectedValue;
 
 /**
  * Proxies expression access to an execution and allows for additional virtual variables.
@@ -34,16 +35,23 @@ class ExecutionAccess implements ExpressionAccessInterface
 		return $this->execution;
 	}
 	
-	public function resolveExpressionValue($name, & $isResolved)
+	public function resolveExpressionValue(InspectedValue $inspection)
 	{
-		$isResolved = true;
-		
-		if(array_key_exists($name, $this->variables))
+		if(array_key_exists($inspection->name, $this->variables))
 		{
-			return $this->variables[$name];
+			$inspection->value = $this->variables[$inspection->name];
+			
+			return true;
 		}
 		
-		return $this->execution->getVariable($name, NULL);
+		if($this->execution->hasVariable($inspection->name))
+		{
+			$inspection->value = $this->execution->getVariable($inspection->name);
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public function setVariable($name, $value)
