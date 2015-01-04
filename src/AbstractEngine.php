@@ -240,7 +240,7 @@ abstract class AbstractEngine implements EngineInterface
 		$count = $this->executionCount;
 		$this->executionCount = 0;
 		
-		$this->debug('BEGIN execution');
+		$this->debug('BEGIN execution (depth: {depth})', ['depth' => $this->executionDepth]);
 		
 		try
 		{
@@ -248,7 +248,8 @@ abstract class AbstractEngine implements EngineInterface
 		}
 		finally
 		{
-			$this->debug('END execution, {count} commands executed', [
+			$this->debug('END execution (depth: {depth}), {count} commands executed', [
+				'depth' => $this->executionDepth,
 				'count' => $this->executionCount
 			]);
 			
