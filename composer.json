@@ -22,7 +22,7 @@
 		"koolkode/event" : "~0.1"
 	},
 	"require-dev" : {
-		"phpunit/phpunit" : "4.*",
+		"phpunit/phpunit" : "~4.4",
 		"monolog/monolog" : "~1"
 	},
 	"autoload" : {
