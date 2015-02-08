@@ -141,9 +141,9 @@ class Execution
 	{
 		$data = [
 			'id' => (string)$this->id,
-			'parentId' => ($this->parentExecution === NULL) ? NULL : (string)$this->parentExecution->getId(),
-			'processId' => (string)$this->getRootExecution()->getId(),
-			'modelId' => (string)$this->model->getId(),
+			'parentId' => ($this->parentExecution === NULL) ? NULL : $this->parentExecution->getId(),
+			'processId' => $this->getRootExecution()->getId(),
+			'modelId' => $this->model->getId(),
 			'state' => $this->state,
 			'depth' => $this->getExecutionDepth(),
 			'timestamp' => $this->timestamp,
