@@ -144,7 +144,7 @@ abstract class AbstractEngine implements EngineInterface
 	{
 		if(empty($this->executions[(string)$execution->getId()]))
 		{
-			$this->registerNewExecution($execution);
+			$this->syncNewExecution($execution, $execution->collectSyncData());
 		}
 	}
 	
@@ -309,32 +309,60 @@ abstract class AbstractEngine implements EngineInterface
 			
 			$this->deferred = $deferred;
 			
-			$this->cleanupExecutions();
+			$this->syncExecutions();
 		}
 	}
 	
-	protected function registerNewExecution(Execution $execution)
+	public function syncExecutions()
 	{
-		$this->executions[(string)$execution->getId()] = $execution;
+		$modified = [];
+		$removed = [];
 		
-		$this->debug('Registered {execution}', ['execution' => (string)$execution]);
+		foreach(array_values($this->executions) as $execution)
+		{
+			switch($execution->getSyncState())
+			{
+				case Execution::SYNC_STATE_MODIFIED:
+					$modified[] = $execution;
+					break;
+				case Execution::SYNC_STATE_REMOVED:
+					$removed[] = $execution;
+					break;
+			}
+			
+			$execution->setSyncState(Execution::SYNC_STATE_NO_CHANGE);
+		}
+		
+		foreach($modified as $execution)
+		{
+			$this->syncModifiedExecution($execution, $execution->collectSyncData());
+		}
+		
+		foreach($removed as $execution)
+		{
+			$this->syncRemoveExecution($execution);
+		}
 	}
 	
-	protected function removeTerminatedExecution(Execution $execution)
+	protected function syncNewExecution(Execution $execution, array $syncData)
+	{
+		$execution->setSyncData($syncData);
+		$this->executions[(string)$execution->getId()] = $execution;
+		
+		$this->debug('Sync created {execution}', ['execution' => (string)$execution]);
+	}
+	
+	protected function syncModifiedExecution(Execution $execution, array $syncData)
+	{
+		$execution->setSyncData($syncData);
+		
+		$this->debug('Sync modified {execution}', ['execution' => (string)$execution]);
+	}
+	
+	protected function syncRemoveExecution(Execution $execution)
 	{
 		unset($this->executions[(string)$execution->getId()]);
 		
-		$this->debug('Removed {execution}', ['execution' => (string)$execution]);
-	}
-	
-	protected function cleanupExecutions()
-	{
-		foreach(array_values($this->executions) as $execution)
-		{
-			if($execution->isTerminated())
-			{
-				$this->removeTerminatedExecution($execution);
-			}
-		}
+		$this->debug('Sync removed {execution}', ['execution' => (string)$execution]);
 	}
 }

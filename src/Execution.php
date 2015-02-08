@@ -39,8 +39,15 @@ class Execution
 	const STATE_TERMINATE = 16;
 	const STATE_SCOPE_ROOT = 32;
 	
+	const SYNC_STATE_NO_CHANGE = 0;
+	const SYNC_STATE_MODIFIED = 1;
+	const SYNC_STATE_REMOVED = 2;
+	
 	protected $id;
 	protected $state = self::STATE_ACTIVE;
+	protected $syncState = self::SYNC_STATE_NO_CHANGE;
+	protected $syncData = [];
+	
 	protected $timestamp = 0;
 	protected $variables = [];
 	
@@ -98,6 +105,60 @@ class Execution
 		
 		return $data;
 	}
+	
+	public function getSyncState()
+	{
+		return $this->syncState;
+	}
+	
+	public function setSyncState($state)
+	{
+		switch((int)$state)
+		{
+			case self::SYNC_STATE_MODIFIED:
+			case self::SYNC_STATE_NO_CHANGE:
+			case self::SYNC_STATE_REMOVED:
+				// OK
+				break;
+			default:
+				throw new \InvalidArgumentException(sprintf('Invalid sync state: %s', $state));
+		}
+		
+		$this->syncState = (int)$state;
+	}
+	
+	public function getSyncData()
+	{
+		return $this->syncData;
+	}
+	
+	public function setSyncData(array $data)
+	{
+		$this->syncData = $data;
+	}
+	
+	public function collectSyncData()
+	{
+		$data = [
+			'id' => (string)$this->id,
+			'parentId' => ($this->parentExecution === NULL) ? NULL : (string)$this->parentExecution->getId(),
+			'processId' => (string)$this->getRootExecution()->getId(),
+			'modelId' => (string)$this->model->getId(),
+			'state' => $this->state,
+			'depth' => $this->getExecutionDepth(),
+			'timestamp' => $this->timestamp,
+			'variables' => $this->variables,
+			'transition' => ($this->transition === NULL) ? NULL : (string)$this->transition->getId(),
+			'node' => ($this->node === NULL) ? NULL : (string)$this->node->getId()
+		];
+		
+		return $data;
+	}
+	
+	public function getExecutionDepth()
+	{
+		return ($this->parentExecution === NULL) ? 0 : $this->parentExecution->getExecutionDepth() + 1;
+	}
 
 	/**
 	 * Get the globally unique identifier of this execution.
@@ -150,6 +211,7 @@ class Execution
 	public function terminate($triggerExecution = true)
 	{
 		$this->state |= self::STATE_TERMINATE;
+		$this->syncState = self::SYNC_STATE_REMOVED;
 		
 		$this->engine->debug('Terminate {execution}', [
 			'execution' => (string)$this
@@ -252,6 +314,8 @@ class Execution
 	public function setActive($active)
 	{
 		$this->setState(self::STATE_ACTIVE, $active);
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -268,6 +332,8 @@ class Execution
 	public function setTimestamp($timestamp)
 	{
 		$this->timestamp = (float)$timestamp;
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -571,6 +637,8 @@ class Execution
 			'var' => (string)$name,
 			'execution' => (string)$this
 		]);
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -596,6 +664,8 @@ class Execution
 			'var' => (string)$name,
 			'execution' => (string)$this
 		]);
+		
+		$this->markModified();
 	}
 	
 	public function getVariablesLocal()
@@ -606,6 +676,8 @@ class Execution
 	public function setVariablesLocal(array $variables)
 	{
 		$this->variables = $variables;
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -626,6 +698,8 @@ class Execution
 	public function setNode(Node $node = NULL)
 	{
 		$this->node = $node;
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -693,6 +767,8 @@ class Execution
 		$this->engine->debug('{execution} entered wait state', [
 			'execution' => (string)$this
 		]);
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -713,6 +789,8 @@ class Execution
 		$this->engine->debug('{execution} woke up from wait state', [
 			'execution' => (string)$this
 		]);
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -835,6 +913,8 @@ class Execution
 			
 			$this->timestamp = microtime(true);
 			$this->transition = $trans;
+			
+			$this->markModified();
 			
 			$this->execute($this->getProcessModel()->findNode($trans->getTo()));
 		}));
@@ -972,6 +1052,8 @@ class Execution
 					]);
 				}
 				
+				$this->markModified();
+				
 				return $root->take(array_shift($transitions));
 			}
 		
@@ -1050,9 +1132,19 @@ class Execution
 		$this->setState(self::STATE_SCOPE_ROOT, false);
 		$this->variables = [];
 	
+		$this->markModified();
+		
 		$this->engine->registerExecution($root);
-	
+		
 		return $root;
+	}
+	
+	protected function markModified()
+	{
+		if($this->syncState !== self::SYNC_STATE_REMOVED)
+		{
+			$this->syncState = self::SYNC_STATE_MODIFIED;
+		}
 	}
 	
 	protected function hasState($state)
