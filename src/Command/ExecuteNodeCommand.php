@@ -12,28 +12,62 @@
 namespace KoolKode\Process\Command;
 
 use KoolKode\Process\EngineInterface;
+use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Execution;
 use KoolKode\Process\Node;
+use KoolKode\Util\UUID;
 
 /**
- * Queue up execution of a specific node, useful when deferring process execution.
+ * Have an exeution enter a node and execute the behavior.
  * 
  * @author Martin Schröder
  */
 class ExecuteNodeCommand extends AbstractCommand
 {
-	protected $execution;
+	protected $executionId;
 	
-	protected $node;
+	protected $nodeId;
 	
 	public function __construct(Execution $execution, Node $node)
 	{
-		$this->execution = $execution;
-		$this->node = $node;
+		$this->executionId = (string)$execution->getId();
+		$this->nodeId = (string)$node->getId();
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isSerializable()
+	{
+		return true;
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(EngineInterface $engine)
 	{
-		$this->execution->execute($this->node);
+		$execution = $engine->findExecution(new UUID($this->executionId));
+		$node = $execution->getProcessModel()->findNode($this->nodeId);
+		
+		$execution->setTimestamp(microtime(true));
+		$execution->setNode($node);
+			
+		$engine->debug('{execution} entering {node}', [
+			'execution' => (string)$execution,
+			'node' => (string)$node
+		]);
+		$engine->notify(new EnterNodeEvent($node, $execution));
+			
+		$behavior = $node->getBehavior();
+			
+		if($behavior === NULL)
+		{
+			$execution->takeAll(NULL, [$execution]);
+		}
+		else
+		{
+			$behavior->execute($execution);
+		}
 	}
 }

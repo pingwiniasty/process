@@ -14,6 +14,7 @@ namespace KoolKode\Process;
 use KoolKode\Event\EventDispatcherInterface;
 use KoolKode\Expression\ExpressionContextFactoryInterface;
 use KoolKode\Process\Command\CommandInterface;
+use KoolKode\Util\UUID;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 
@@ -41,6 +42,13 @@ abstract class AbstractEngine implements EngineInterface
 	 * @var integer
 	 */
 	protected $executionCount = 0;
+	
+	/**
+	 * Active executions being tracked by the process engine.
+	 * 
+	 * @var array
+	 */
+	protected $executions = [];
 	
 	/**
 	 * Holds the prioritized command queue being used.
@@ -118,6 +126,26 @@ abstract class AbstractEngine implements EngineInterface
 	public function getExpressionContextFactory()
 	{
 		return $this->expressionContextFactory;
+	}
+	
+	public function findExecution(UUID $id)
+	{
+		$ref = (string)$id;
+	
+		if(isset($this->executions[$ref]))
+		{
+			return $this->executions[$ref];
+		}
+		
+		throw new \OutOfBoundsException(sprintf('Execution not found: %s', $ref));
+	}
+	
+	public function registerExecution(Execution $execution)
+	{
+		if(empty($this->executions[(string)$execution->getId()]))
+		{
+			$this->registerNewExecution($execution);
+		}
 	}
 	
 	/**
@@ -280,6 +308,33 @@ abstract class AbstractEngine implements EngineInterface
 			}
 			
 			$this->deferred = $deferred;
+			
+			$this->cleanupExecutions();
+		}
+	}
+	
+	protected function registerNewExecution(Execution $execution)
+	{
+		$this->executions[(string)$execution->getId()] = $execution;
+		
+		$this->debug('Registered {execution}', ['execution' => (string)$execution]);
+	}
+	
+	protected function removeTerminatedExecution(Execution $execution)
+	{
+		unset($this->executions[(string)$execution->getId()]);
+		
+		$this->debug('Removed {execution}', ['execution' => (string)$execution]);
+	}
+	
+	protected function cleanupExecutions()
+	{
+		foreach(array_values($this->executions) as $execution)
+		{
+			if($execution->isTerminated())
+			{
+				$this->removeTerminatedExecution($execution);
+			}
 		}
 	}
 }

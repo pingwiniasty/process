@@ -48,6 +48,17 @@ class StartProcessCommand extends AbstractCommand
 		}
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isSerializable()
+	{
+		return false;
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(EngineInterface $engine)
 	{
 		$engine->debug('Starting process {process} at {node}', [

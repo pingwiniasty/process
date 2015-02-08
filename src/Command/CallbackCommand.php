@@ -30,11 +30,25 @@ class CallbackCommand implements CommandInterface
 		$this->priority = (int)$priority;
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isSerializable()
+	{
+		return false;
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function getPriority()
 	{
 		return $this->priority;
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(EngineInterface $engine)
 	{
 		call_user_func($this->callback, $engine);

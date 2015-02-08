@@ -14,6 +14,7 @@ namespace KoolKode\Process;
 use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\Command\CallbackCommand;
+use KoolKode\Process\Command\ExecuteNodeCommand;
 use KoolKode\Process\Event\CreateExpressionContextEvent;
 use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Process\Event\EnterNodeEvent;
@@ -21,6 +22,7 @@ use KoolKode\Process\Event\LeaveNodeEvent;
 use KoolKode\Process\Event\SignalNodeEvent;
 use KoolKode\Process\Event\TakeTransitionEvent;
 use KoolKode\Util\UUID;
+use KoolKode\Process\Command\SignalExecutionCommand;
 
 /**
  * A path of execution holds state and can be thought of as a token in process diagram or Petri-Net.
@@ -263,6 +265,11 @@ class Execution
 	public function getTimestamp()
 	{
 		return $this->timestamp;
+	}
+	
+	public function setTimestamp($timestamp)
+	{
+		$this->timestamp = (float)$timestamp;
 	}
 	
 	/**
@@ -667,32 +674,11 @@ class Execution
 			throw new \RuntimeException(sprintf('%s is terminated', $this));
 		}
 		
-		$this->engine->pushCommand(new CallbackCommand(function(EngineInterface $engine) use($node) {
-			
-			$this->timestamp = microtime(true);
-			$this->node = $node;
-			
-			$this->engine->debug('{execution} entering {node}', [
-				'execution' => (string)$this,
-				'node' => (string)$this->node
-			]);
-			$this->engine->notify(new EnterNodeEvent($this->node, $this));
-			
-			$behavior = $this->node->getBehavior();
-			
-			if($behavior === NULL)
-			{
-				$this->takeAll(NULL, [$this]);
-			}
-			else
-			{
-				$behavior->execute($this);
-			}
-		}));
+		$this->engine->pushCommand(new ExecuteNodeCommand($this, $node));
 	}
 	
 	/**
-	 * Put the current execution into a wait state.
+	 * Put the execution into a wait state.
 	 * 
 	 * @throws \RuntimeException When the execution has been terminated.
 	 */
@@ -704,9 +690,29 @@ class Execution
 		}
 		
 		$this->timestamp = microtime(true);
-		$this->state |= self::STATE_WAIT;
+		$this->setState(self::STATE_WAIT, true);
 		
 		$this->engine->debug('{execution} entered wait state', [
+			'execution' => (string)$this
+		]);
+	}
+	
+	/**
+	 * Wake the execution up from a wait state.
+	 * 
+	 * @throws \RuntimeException When the execution has been terminated.
+	 */
+	public function wakeUp()
+	{
+		if($this->isTerminated())
+		{
+			throw new \RuntimeException(sprintf('Terminated %s cannot enter wait state', $this));
+		}
+		
+		$this->timestamp = microtime(true);
+		$this->setState(self::STATE_WAIT, false);
+		
+		$this->engine->debug('{execution} woke up from wait state', [
 			'execution' => (string)$this
 		]);
 	}
@@ -731,29 +737,7 @@ class Execution
 			throw new \RuntimeException(sprintf('%s is not in a wait state', $this));
 		}
 		
-		$this->engine->pushCommand(new CallbackCommand(function() use($signal, $variables) {
-			
-			$this->timestamp = microtime(true);
-			$this->setState(self::STATE_WAIT, false);
-			
-			$this->engine->debug('Signaling <{signal}> to {execution}', [
-				'signal' => ($signal === NULL) ? 'NULL' : $signal,
-				'execution' => (string)$this
-			]);
-			$this->engine->notify(new SignalNodeEvent($this->node, $this, $signal, $variables));
-			
-			$behavior = $this->node->getBehavior();
-			
-			if($behavior instanceof SignalableBehaviorInterface)
-			{
-				$behavior->signal($this, $signal, $variables);
-			}
-			else
-			{
-				$this->takeAll(NULL, [$this]);
-			}
-		}));
-		
+		$this->engine->pushCommand(new SignalExecutionCommand($this, $signal, $variables));
 	}
 	
 	/**

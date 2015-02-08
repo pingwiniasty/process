@@ -13,6 +13,7 @@ namespace KoolKode\Process;
 
 use KoolKode\Expression\ExpressionContextFactoryInterface;
 use KoolKode\Process\Command\CommandInterface;
+use KoolKode\Util\UUID;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -61,6 +62,14 @@ interface EngineInterface extends LoggerInterface
 	 * @return mixed
 	 */
 	public function executeCommand(CommandInterface $command);
+	
+	/**
+	 * Get an execution by ID.
+	 * 
+	 * @param UUID $id
+	 * @return Execution
+	 */
+	public function findExecution(UUID $id);
 	
 	/**
 	 * Register an execution with the process engine, very helpful in implementing persistence.

@@ -28,6 +28,13 @@ interface CommandInterface
 	const PRIORITY_DEFAULT = 1000;
 	
 	/**
+	 * Check if the command can be serialized (allows for storing commands and executing them at a later time).
+	 * 
+	 * @return boolean
+	 */
+	public function isSerializable();
+	
+	/**
 	 * Get the command priority.
 	 * 
 	 * @return integer

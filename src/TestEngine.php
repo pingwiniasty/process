@@ -21,11 +21,9 @@ use KoolKode\Util\UUID;
  */
 class TestEngine extends AbstractEngine
 {
-	protected $executions = [];
-	
-	public function registerExecution(Execution $execution)
+	public function getExecutions()
 	{
-		$this->executions[(string)$execution->getId()] = $execution;
+		return $this->executions;
 	}
 	
 	public function startProcess(ProcessModel $model, array $variables = [])
