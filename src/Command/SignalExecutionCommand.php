@@ -70,6 +70,14 @@ class SignalExecutionCommand extends AbstractCommand
 	/**
 	 * {@inheritdoc}
 	 */
+	public function getPriority()
+	{
+		return self::PRIORITY_DEFAULT + 50;
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(EngineInterface $engine)
 	{
 		$execution = $engine->findExecution(new UUID($this->executionId));
