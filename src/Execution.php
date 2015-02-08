@@ -286,8 +286,6 @@ class Execution
 				$this->takeAll(NULL, [$this]);
 			}
 		}
-		
-		$this->markModified();
 	}
 	
 	/**
@@ -412,8 +410,6 @@ class Execution
 			'parent' => (string)$this
 		]);
 		
-		$this->markModified();
-		
 		return $execution;
 	}
 	
@@ -435,8 +431,6 @@ class Execution
 			'execution' => (string)$execution,
 			'parent' => (string)$this
 		]);
-		
-		$this->markModified();
 		
 		return $execution;
 	}
@@ -971,6 +965,8 @@ class Execution
 						'execution' => (string)$this,
 						'root' => (string)$this->parentExecution
 					]);
+					
+					$this->markModified();
 						
 					return $this->parentExecution->takeAll($transitions);
 				}
@@ -1014,6 +1010,8 @@ class Execution
 			
 					return $this->parentExecution->terminate();
 				}
+				
+				$this->markModified();
 				
 				return;
 			}
@@ -1147,7 +1145,7 @@ class Execution
 		return $root;
 	}
 	
-	protected function markModified()
+	public function markModified()
 	{
 		if($this->syncState !== self::SYNC_STATE_REMOVED)
 		{

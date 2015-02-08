@@ -27,7 +27,7 @@ class ExecuteNodeCommand extends AbstractCommand
 	/**
 	 * Execution ID.
 	 * 
-	 * @var string
+	 * @var UUID
 	 */
 	protected $executionId;
 	
@@ -46,7 +46,7 @@ class ExecuteNodeCommand extends AbstractCommand
 	 */
 	public function __construct(Execution $execution, Node $node)
 	{
-		$this->executionId = (string)$execution->getId();
+		$this->executionId = $execution->getId();
 		$this->nodeId = (string)$node->getId();
 	}
 	
@@ -63,7 +63,7 @@ class ExecuteNodeCommand extends AbstractCommand
 	 */
 	public function execute(EngineInterface $engine)
 	{
-		$execution = $engine->findExecution(new UUID($this->executionId));
+		$execution = $engine->findExecution($this->executionId);
 		$node = $execution->getProcessModel()->findNode($this->nodeId);
 		
 		$execution->setTimestamp(microtime(true));
