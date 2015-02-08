@@ -347,6 +347,8 @@ abstract class AbstractEngine implements EngineInterface
 	protected function syncNewExecution(Execution $execution, array $syncData)
 	{
 		$execution->setSyncData($syncData);
+		$execution->setSyncState(Execution::SYNC_STATE_NO_CHANGE);
+		
 		$this->executions[(string)$execution->getId()] = $execution;
 		
 		$this->debug('Sync created {execution}', ['execution' => (string)$execution]);
@@ -355,6 +357,7 @@ abstract class AbstractEngine implements EngineInterface
 	protected function syncModifiedExecution(Execution $execution, array $syncData)
 	{
 		$execution->setSyncData($syncData);
+		$execution->setSyncState(Execution::SYNC_STATE_NO_CHANGE);
 		
 		$this->debug('Sync modified {execution}', ['execution' => (string)$execution]);
 	}
