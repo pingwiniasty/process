@@ -248,6 +248,8 @@ class Execution
 			$this->childExecutions[] = $execution;
 		}
 		
+		$this->markModified();
+		
 		return $execution;
 	}
 	
@@ -284,6 +286,8 @@ class Execution
 				$this->takeAll(NULL, [$this]);
 			}
 		}
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -408,6 +412,8 @@ class Execution
 			'parent' => (string)$this
 		]);
 		
+		$this->markModified();
+		
 		return $execution;
 	}
 	
@@ -429,6 +435,8 @@ class Execution
 			'execution' => (string)$execution,
 			'parent' => (string)$this
 		]);
+		
+		$this->markModified();
 		
 		return $execution;
 	}
