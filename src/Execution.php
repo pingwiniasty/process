@@ -140,7 +140,7 @@ class Execution
 	public function collectSyncData()
 	{
 		$data = [
-			'id' => (string)$this->id,
+			'id' => $this->id,
 			'parentId' => ($this->parentExecution === NULL) ? NULL : $this->parentExecution->getId(),
 			'processId' => $this->getRootExecution()->getId(),
 			'modelId' => $this->model->getId(),
