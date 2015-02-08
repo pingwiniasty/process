@@ -18,6 +18,9 @@ namespace KoolKode\Process\Command;
  */
 abstract class AbstractCommand implements CommandInterface
 {
+	/**
+	 * {@inheritdoc}
+	 */
 	public function getPriority()
 	{
 		return self::PRIORITY_DEFAULT;

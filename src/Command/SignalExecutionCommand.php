@@ -24,12 +24,34 @@ use KoolKode\Util\UUID;
  */
 class SignalExecutionCommand extends AbstractCommand
 {
+	/**
+	 * Execution ID.
+	 * 
+	 * @var string
+	 */
 	protected $executionId;
 	
+	/**
+	 * Signal name.
+	 * 
+	 * @var string
+	 */
 	protected $signal;
 	
+	/**
+	 * Signal data.
+	 * 
+	 * @var array
+	 */
 	protected $variables;
 	
+	/**
+	 * Wake the given execution up using the given signal / variables.
+	 * 
+	 * @param Execution $execution
+	 * @param string $signal
+	 * @param array $variables
+	 */
 	public function __construct(Execution $execution, $signal = NULL, array $variables = [])
 	{
 		$this->executionId = (string)$execution->getId();

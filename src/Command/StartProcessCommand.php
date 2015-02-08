@@ -18,6 +18,11 @@ use KoolKode\Process\Node;
 use KoolKode\Process\ProcessModel;
 use KoolKode\Util\UUID;
 
+/**
+ * Have the engine start a new process instance.
+ * 
+ * @author Martin Schröder
+ */
 class StartProcessCommand extends AbstractCommand
 {
 	protected $model;

@@ -24,6 +24,12 @@ class CallbackCommand implements CommandInterface
 	
 	protected $priority;
 	
+	/**
+	 * Create a command from the given callback and priority.
+	 * 
+	 * @param callable $callback
+	 * @param integer $priority
+	 */
 	public function __construct(callable $callback, $priority = self::PRIORITY_DEFAULT)
 	{
 		$this->callback = $callback;

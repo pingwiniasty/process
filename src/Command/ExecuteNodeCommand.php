@@ -24,10 +24,26 @@ use KoolKode\Util\UUID;
  */
 class ExecuteNodeCommand extends AbstractCommand
 {
+	/**
+	 * Execution ID.
+	 * 
+	 * @var string
+	 */
 	protected $executionId;
 	
+	/**
+	 * Node ID (unique within the process model).
+	 * 
+	 * @var string
+	 */
 	protected $nodeId;
 	
+	/**
+	 * Have the given execution execute execute the node's behavior.
+	 * 
+	 * @param Execution $execution
+	 * @param Node $node
+	 */
 	public function __construct(Execution $execution, Node $node)
 	{
 		$this->executionId = (string)$execution->getId();

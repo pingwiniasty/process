@@ -15,14 +15,12 @@ use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\Command\CallbackCommand;
 use KoolKode\Process\Command\ExecuteNodeCommand;
+use KoolKode\Process\Command\SignalExecutionCommand;
 use KoolKode\Process\Event\CreateExpressionContextEvent;
 use KoolKode\Process\Event\EndProcessEvent;
-use KoolKode\Process\Event\EnterNodeEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;
-use KoolKode\Process\Event\SignalNodeEvent;
 use KoolKode\Process\Event\TakeTransitionEvent;
 use KoolKode\Util\UUID;
-use KoolKode\Process\Command\SignalExecutionCommand;
 
 /**
  * A path of execution holds state and can be thought of as a token in process diagram or Petri-Net.
