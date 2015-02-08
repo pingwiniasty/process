@@ -340,7 +340,7 @@ abstract class AbstractEngine implements EngineInterface
 		
 		foreach($removed as $execution)
 		{
-			$this->syncRemoveExecution($execution);
+			$this->syncRemovedExecution($execution);
 		}
 	}
 	
@@ -359,7 +359,7 @@ abstract class AbstractEngine implements EngineInterface
 		$this->debug('Sync modified {execution}', ['execution' => (string)$execution]);
 	}
 	
-	protected function syncRemoveExecution(Execution $execution)
+	protected function syncRemovedExecution(Execution $execution)
 	{
 		unset($this->executions[(string)$execution->getId()]);
 		
