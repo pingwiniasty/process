@@ -2,12 +2,12 @@
 
 /*
  * This file is part of KoolKode Process.
-*
-* (c) Martin Schröder <m.schroeder2007@gmail.com>
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+ *
+ * (c) Martin Schröder <m.schroeder2007@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace KoolKode\Process\Behavior;
 
@@ -27,6 +27,9 @@ class ExclusiveChoiceBehavior implements BehaviorInterface
 		$this->defaultTransition = ($defaultTransition === NULL) ? NULL : (string)$defaultTransition;
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(Execution $execution)
 	{
 		foreach($execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId()) as $trans)

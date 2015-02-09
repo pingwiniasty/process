@@ -2,12 +2,12 @@
 
 /*
  * This file is part of KoolKode Process.
-*
-* (c) Martin Schröder <m.schroeder2007@gmail.com>
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+ *
+ * (c) Martin Schröder <m.schroeder2007@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace KoolKode\Process\Behavior;
 
@@ -27,16 +27,24 @@ class CallbackBehavior implements BehaviorInterface, \Serializable
 		$this->callback = $callback;
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function serialize()
 	{
 		throw new \RuntimeException('Callback behaviors are for testing only and cannot be serialized');
 	}
 	
 	/**
+	 * {@inheritdoc}
+	 * 
 	 * @codeCoverageIgnore
 	 */
 	public function unserialize($serialized) { }
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(Execution $execution)
 	{
 		$trans = call_user_func($this->callback, $execution);

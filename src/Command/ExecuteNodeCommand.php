@@ -75,13 +75,7 @@ class ExecuteNodeCommand extends AbstractCommand
 		]);
 		$engine->notify(new EnterNodeEvent($node, $execution));
 			
-		$behavior = $node->getBehavior();
-			
-		if($behavior === NULL)
-		{
-			$execution->takeAll(NULL, [$execution]);
-		}
-		else
+		foreach($node->getBehaviors() as $behavior)
 		{
 			$behavior->execute($execution);
 		}

@@ -30,7 +30,7 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Default Fork Behavior');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'A');
 		$builder->transition('t2', 'start', 'B');
 		$builder->transition('t3', 'start', 'C');
@@ -80,7 +80,7 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Fork with Transition Triggers');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'A')
 				->trigger(new ExpressionTrigger($this->parseExp('#{ a }')));
 		$builder->transition('t2', 'start', 'B')
@@ -119,7 +119,7 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Transition Trigger blocks take()');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'A')
 				->trigger(new ExpressionTrigger($this->parseExp('#{ proceed ? true : false }')));
 		
@@ -139,14 +139,14 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Converging Gate');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'A');
 		$builder->transition('t2', 'start', 'B');
 		
 		$builder->node('A')->behavior(new WaitStateBehavior());
 		$builder->transition('t3', 'A', 'gate');
 		
-		$builder->node('B');
+		$builder->passNode('B');
 		$builder->transition('t4', 'B', 'gate');
 		
 		$builder->node('gate')->behavior(new SyncBehavior());
@@ -156,10 +156,10 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('C')->behavior(new WaitStateBehavior());
 		$builder->transition('t7', 'C', 'end');
 		
-		$builder->node('D');
+		$builder->passNode('D');
 		$builder->transition('t8', 'D', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		
@@ -196,7 +196,8 @@ class ProcessEngineTest extends ProcessTestCase
 	public function testBasicTransitions($transition, $outcome)
 	{
 		$builder = new ProcessBuilder('Fork Process Based on Signaled Transition ID');
-		$builder->node('start')->initial();
+		
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'fork');
 		
 		$builder->node('fork')->behavior(new WaitStateBehavior());
@@ -240,7 +241,7 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Exclusive Fork and Join Test');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'amount');
 		
 		$builder->node('amount')->behavior(new WaitStateBehavior());
@@ -256,7 +257,7 @@ class ProcessEngineTest extends ProcessTestCase
 		}));
 		$builder->transition('t5', 'discount', 'join');
 		
-		$builder->node('join');
+		$builder->passNode('join');
 		$builder->transition('t6', 'join', 'bill');
 		
 		$sum = 0;
@@ -265,7 +266,7 @@ class ProcessEngineTest extends ProcessTestCase
 		}));
 		$builder->transition('t7', 'bill', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$this->assertEmpty($builder->validate());
 	
@@ -303,7 +304,7 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Inclusive Choice Fork Test');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'input');
 		
 		$builder->node('input')->behavior(new WaitStateBehavior());
@@ -338,7 +339,7 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Inclusive Fork and Join Test');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t0', 'start', 'X');
 		
 		$builder->node('X')->behavior(new WaitStateBehavior());
@@ -363,7 +364,7 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('join')->behavior(new InclusiveChoiceBehavior());
 		$builder->transition('t8', 'join', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		
@@ -386,13 +387,13 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Parallel Fork With End Test');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'receiveOffer');
 		
 		$builder->node('receiveOffer')->behavior(new CallbackBehavior([$this, 'square']));
 		$builder->transition('t2', 'receiveOffer', 'fork');
 		
-		$builder->node('fork');
+		$builder->passNode('fork');
 		$builder->transition('t3', 'fork', 'specification');
 		$builder->transition('t4', 'fork', 'registration');
 		
@@ -402,8 +403,8 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('registration')->behavior(new CallbackBehavior([$this, 'square']));
 		$builder->transition('t6', 'registration', 'end2');
 		
-		$builder->node('end1');
-		$builder->node('end2');
+		$builder->passNode('end1');
+		$builder->passNode('end2');
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		
@@ -423,14 +424,14 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Parallel Fork and Join');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'fork');
 		
-		$builder->node('fork');
+		$builder->passNode('fork');
 		$builder->transition('t2', 'fork', 'service');
 		$builder->transition('t3', 'fork', 'user');
 		
-		$builder->node('service');
+		$builder->passNode('service');
 		$builder->transition('t4', 'service', 'join');
 			
 		$builder->node('user')->behavior(new WaitStateBehavior());
@@ -448,7 +449,7 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('verify')->behavior(new WaitStateBehavior());
 		$builder->transition('t8', 'verify', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$this->assertEmpty($builder->validate());
 		$this->assertEquals(0, $counter);
@@ -475,27 +476,27 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Multiple Parallel Forks and Joins');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 's1');
 		
-		$builder->node('s1');
+		$builder->passNode('s1');
 		$builder->transition('t2', 's1', 'A');
 		$builder->transition('t3', 's1', 'B');
 		
 		$builder->node('A')->behavior(new WaitStateBehavior());
 		$builder->transition('t4', 'A', 's2');
 		
-		$builder->node('B');
+		$builder->passNode('B');
 		$builder->transition('t5', 'B', 'j1');
 		
-		$builder->node('s2');
+		$builder->passNode('s2');
 		$builder->transition('t6', 's2', 'C');
 		$builder->transition('t7', 's2', 'j1');
 		
 		$builder->node('j1')->behavior(new SyncBehavior());
 		$builder->transition('t8', 'j1', 'D');
 		
-		$builder->node('C');
+		$builder->passNode('C');
 		$builder->transition('t9', 'C', 'j2');
 		
 		$builder->node('D')->behavior(new WaitStateBehavior());
@@ -504,10 +505,10 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('j2')->behavior(new SyncBehavior());
 		$builder->transition('t11', 'j2', 'E');
 		
-		$builder->node('E');
+		$builder->passNode('E');
 		$builder->transition('t12', 'E', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$process = $this->processEngine->startProcess(unserialize(serialize($builder->build())));
 		
@@ -563,29 +564,29 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Merging into a parallel branch using XOR');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'p1');
 		
-		$builder->node('p1');
+		$builder->passNode('p1');
 		$builder->transition('t2', 'p1', 'B');
 		$builder->transition('t3', 'p1', 'A');
 		
-		$builder->node('A');
+		$builder->passNode('A');
 		$builder->transition('t6', 'A', 'x1');
 		
-		$builder->node('B');
+		$builder->passNode('B');
 		$builder->transition('t4', 'B', 'C');
 		
 		$builder->node('C')->behavior(new WaitStateBehavior());
 		$builder->transition('t5', 'C', 'p2');
 		
-		$builder->node('x1');
+		$builder->passNode('x1');
 		$builder->transition('t7', 'x1', 'p2');
 		
 		$builder->node('p2')->behavior(new SyncBehavior());
 		$builder->transition('t8', 'p2', 'D');
 		
-		$builder->node('D');
+		$builder->passNode('D');
 		$builder->transition('t9', 'D', 'x2');
 		
 		$builder->node('x2')->behavior(new ExclusiveChoiceBehavior('t13'));
@@ -593,14 +594,14 @@ class ProcessEngineTest extends ProcessTestCase
 				->trigger(new ExpressionTrigger($this->parseExp('#{ reject }')));
 		$builder->transition('t13', 'x2', 'E');
 		
-		$builder->node('p3');
+		$builder->passNode('p3');
 		$builder->transition('t11', 'p3', 'x1');
 		$builder->transition('t12', 'p3', 'B');
 		
-		$builder->node('E');
+		$builder->passNode('E');
 		$builder->transition('t14', 'E', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$process = $this->processEngine->startProcess($builder->build(), [
 			'reject' => true
@@ -621,10 +622,10 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Concurrent Execution Message Trigger');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'A');
 		
-		$builder->node('A');
+		$builder->passNode('A');
 		$builder->transition('t2', 'A', 'join');
 		$builder->transition('t5', 'A', 'message');
 		
@@ -634,7 +635,7 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('join')->behavior(new SyncBehavior());
 		$builder->transition('t4', 'join', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		
@@ -647,10 +648,10 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$builder = new ProcessBuilder('Signal Throw / Catch Example');
 		
-		$builder->node('start')->initial();
+		$builder->startNode('start');
 		$builder->transition('t1', 'start', 'split');
 		
-		$builder->node('split');
+		$builder->passNode('split');
 		$builder->transition('t2', 'split', 'task');
 		$builder->transition('t3', 'split', 'catch');
 		
@@ -677,7 +678,7 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->node('join')->behavior(new SyncBehavior());
 		$builder->transition('t7', 'join', 'end');
 		
-		$builder->node('end');
+		$builder->passNode('end');
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		
@@ -710,17 +711,17 @@ class ProcessEngineTest extends ProcessTestCase
 	{
 		$sub = new ProcessBuilder('Sub Process');
 		
-		$sub->node('s2')->initial();
+		$sub->startNode('s2');
 		$sub->transition('t3', 's2', 'B');
 		
 		$sub->node('B')->behavior(new WaitStateBehavior());
 		$sub->transition('t4', 'B', 'e2');
 		
-		$sub->node('e2');
+		$sub->passNode('e2');
 		
 		$builder = new ProcessBuilder('Nested Scope Execution');
 		
-		$builder->node('s1')->initial();
+		$builder->startNode('s1');
 		$builder->transition('t1', 's1', 'A');
 		
 		$builder->node('A')->behavior(new WaitStateBehavior());
@@ -734,7 +735,7 @@ class ProcessEngineTest extends ProcessTestCase
 		));
 		$builder->transition('t5', 'sub', 'e1');
 		
-		$builder->node('e1');
+		$builder->passNode('e1');
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		$process->signal(NULL, ['subject' => 'hello']);

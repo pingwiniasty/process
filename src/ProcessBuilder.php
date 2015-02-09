@@ -11,6 +11,9 @@
 
 namespace KoolKode\Process;
 
+use KoolKode\Process\Behavior\PassBehavior;
+use KoolKode\Process\Behavior\TerminateBehavior;
+
 /**
  * The process builder is a convenient ultility for programmatic construction of process models.
  * 
@@ -19,6 +22,7 @@ namespace KoolKode\Process;
 class ProcessBuilder
 {
 	protected $title;
+	
 	protected $items = [];
 	
 	/**
@@ -40,6 +44,36 @@ class ProcessBuilder
 	public function node($id)
 	{
 		return $this->items[$id] = new Node($id);
+	}
+	
+	/**
+	 * Add a new pass-through node to the process.
+	 * 
+	 * @param string $id nique ID of the node.
+	 * @return Node Created node instance.
+	 */
+	public function passNode($id)
+	{
+		return $this->node($id)->behavior(new PassBehavior());
+	}
+	
+	/**
+	 * 
+	 * @param unknown $id
+	 */
+	public function startNode($id)
+	{
+		return $this->passNode($id)->initial();
+	}
+	
+	/**
+	 * 
+	 * @param unknown $id
+	 * @return \KoolKode\Process\Node
+	 */
+	public function endNode($id)
+	{
+		return $this->passNode($id)->behavior(new TerminateBehavior());
 	}
 	
 	/**

@@ -19,8 +19,25 @@ namespace KoolKode\Process;
  */
 class Transition extends Item
 {
+	/**
+	 * Origin node identifier.
+	 * 
+	 * @var string
+	 */
 	protected $from;
+	
+	/**
+	 * target node identifier.
+	 * 
+	 * @var string
+	 */
 	protected $to;
+	
+	/**
+	 * Transition activation triggers.
+	 * 
+	 * @var array<TriggerInterface>
+	 */
 	protected $triggers = [];
 	
 	public function __construct($id, $from)

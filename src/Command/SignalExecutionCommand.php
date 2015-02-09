@@ -90,16 +90,13 @@ class SignalExecutionCommand extends AbstractCommand
 			'execution' => (string)$execution
 		]);
 		$engine->notify(new SignalNodeEvent($node, $execution, $this->signal, $this->variables));
-			
-		$behavior = $node->getBehavior();
-			
-		if($behavior instanceof SignalableBehaviorInterface)
+		
+		foreach($node->getBehaviors() as $behavior)
 		{
-			$behavior->signal($execution, $this->signal, $this->variables);
-		}
-		else
-		{
-			$execution->takeAll(NULL, [$execution]);
+			if($behavior instanceof SignalableBehaviorInterface)
+			{
+				$behavior->signal($execution, $this->signal, $this->variables);
+			}
 		}
 	}
 }

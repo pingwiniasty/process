@@ -27,8 +27,22 @@ class ProcessModel
 	public function __construct(array $items, $title = '', UUID $id = NULL)
 	{
 		$this->id = ($id === NULL) ? UUID::createRandom() : $id;
-		$this->items = $items;
 		$this->title = trim($title);
+		
+		foreach($items as $item)
+		{
+			if($item instanceof Node)
+			{
+				$behaviors = $item->getBehaviors();
+				
+				if(empty($behaviors))
+				{
+					throw new \RuntimeException(sprintf('Node "%s" does not declare a behavior', $item->getId()));
+				}
+			}
+		}
+		
+		$this->items = $items;
 	}
 	
 	public function __clone()

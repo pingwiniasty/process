@@ -37,6 +37,9 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 		$this->outputs = $outputs;
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function execute(Execution $execution)
 	{
 		$nodes = $this->process->findInitialNodes();

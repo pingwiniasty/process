@@ -25,7 +25,8 @@ class Node extends Item
 	const FLAG_END = 2;
 	
 	protected $flags = self::FLAG_NONE;
-	protected $behavior;
+	
+	protected $behaviors = [];
 	
 	public function __toString()
 	{
@@ -45,18 +46,18 @@ class Node extends Item
 	}
 	
 	/**
-	 * Get the node's behavior or NULL when no custom behavior is available.
+	 * Get all behaviors of this node.
 	 * 
 	 * @return BehaviorInterface
 	 */
-	public function getBehavior()
+	public function getBehaviors()
 	{
-		return $this->behavior;
+		return $this->behaviors;
 	}
 	
 	public function behavior(BehaviorInterface $behavior = NULL)
 	{
-		$this->behavior = $behavior;
+		$this->behaviors[] = $behavior;
 		
 		return $this;
 	}
