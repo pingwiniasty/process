@@ -41,7 +41,7 @@ abstract class ProcessTestCase extends \PHPUnit_Framework_TestCase
 		
 		$logger = NULL;
 		
-		if(!empty($_SERVER['KK_LOG']))
+		if($this->isDebug())
 		{
 			$logger = new Logger('Process');
 			$logger->pushHandler(new StreamHandler(STDERR));
@@ -59,6 +59,11 @@ abstract class ProcessTestCase extends \PHPUnit_Framework_TestCase
 	
 		$this->processEngine = new TestEngine($this->eventDispatcher, new ExpressionContextFactory());
 		$this->processEngine->setLogger($logger);
+	}
+	
+	protected function isDebug()
+	{
+		return false;
 	}
 	
 	/**
