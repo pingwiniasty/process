@@ -14,8 +14,6 @@ namespace KoolKode\Process;
 use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\Command\CallbackCommand;
-use KoolKode\Process\Command\ExecuteNodeCommand;
-use KoolKode\Process\Command\SignalExecutionCommand;
 use KoolKode\Process\Event\CreateExpressionContextEvent;
 use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Process\Event\LeaveNodeEvent;
@@ -748,7 +746,7 @@ class Execution
 			throw new \RuntimeException(sprintf('%s is terminated', $this));
 		}
 		
-		$this->engine->pushCommand(new ExecuteNodeCommand($this, $node));
+		$this->engine->pushCommand($this->engine->createExecuteNodeCommand($this, $node));
 	}
 	
 	/**
@@ -815,7 +813,7 @@ class Execution
 			throw new \RuntimeException(sprintf('%s is not in a wait state', $this));
 		}
 		
-		$this->engine->pushCommand(new SignalExecutionCommand($this, $signal, $variables));
+		$this->engine->pushCommand($this->engine->createSignalExecutionCommand($this, $signal, $variables));
 	}
 	
 	/**

@@ -77,4 +77,23 @@ interface EngineInterface extends LoggerInterface
 	 * @param Execution $execution
 	 */
 	public function registerExecution(Execution $execution);
+	
+	/**
+	 * Create a command that will execute a node in the context of the given execution.
+	 * 
+	 * @param Execution $execution
+	 * @param Node $node
+	 * @return CommandInterface
+	 */
+	public function createExecuteNodeCommand(Execution $execution, Node $node);
+	
+	/**
+	 * Create a command that will signal an execution passing a signal and optional data.
+	 * 
+	 * @param Execution $execution
+	 * @param string $signal
+	 * @param array $variables
+	 * @return CommandInterface
+	 */
+	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = []);
 }

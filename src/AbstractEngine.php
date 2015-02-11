@@ -14,6 +14,8 @@ namespace KoolKode\Process;
 use KoolKode\Event\EventDispatcherInterface;
 use KoolKode\Expression\ExpressionContextFactoryInterface;
 use KoolKode\Process\Command\CommandInterface;
+use KoolKode\Process\Command\ExecuteNodeCommand;
+use KoolKode\Process\Command\SignalExecutionCommand;
 use KoolKode\Util\UUID;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
@@ -342,6 +344,16 @@ abstract class AbstractEngine implements EngineInterface
 		{
 			$this->syncRemovedExecution($execution);
 		}
+	}
+	
+	public function createExecuteNodeCommand(Execution $execution, Node $node)
+	{
+		return new ExecuteNodeCommand($execution, $node);
+	}
+	
+	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = [])
+	{
+		return new SignalExecutionCommand($execution, $signal, $variables);
 	}
 	
 	protected function syncNewExecution(Execution $execution, array $syncData)
