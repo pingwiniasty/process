@@ -74,10 +74,18 @@ class ExecuteNodeCommand extends AbstractCommand
 			'node' => (string)$node
 		]);
 		$engine->notify(new EnterNodeEvent($node, $execution));
-			
-		foreach($node->getBehaviors() as $behavior)
-		{
-			$behavior->execute($execution);
-		}
+		
+		$this->executeNode($node, $execution);
+	}
+	
+	/**
+	 * Perform logic needed to actually execute the node's behavior.
+	 * 
+	 * @param Node $node
+	 * @param Execution $execution
+	 */
+	protected function executeNode(Node $node, Execution $execution)
+	{
+		$node->getBehavior()->execute($execution);
 	}
 }

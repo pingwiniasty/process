@@ -15,6 +15,7 @@ use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\EngineInterface;
 use KoolKode\Process\Event\SignalNodeEvent;
 use KoolKode\Process\Execution;
+use KoolKode\Process\Node;
 use KoolKode\Util\UUID;
 
 /**
@@ -91,12 +92,22 @@ class SignalExecutionCommand extends AbstractCommand
 		]);
 		$engine->notify(new SignalNodeEvent($node, $execution, $this->signal, $this->variables));
 		
-		foreach($node->getBehaviors() as $behavior)
+		$this->singalExecution($node, $execution);
+	}
+	
+	/**
+	 * Perform logic to actually signal the execution.
+	 * 
+	 * @param Node $node
+	 * @param Execution $execution
+	 */
+	protected function singalExecution(Node $node, Execution $execution)
+	{
+		$behavior = $node->getBehavior();
+		
+		if($behavior instanceof SignalableBehaviorInterface)
 		{
-			if($behavior instanceof SignalableBehaviorInterface)
-			{
-				$behavior->signal($execution, $this->signal, $this->variables);
-			}
+			$behavior->signal($execution, $this->signal, $this->variables);
 		}
 	}
 }

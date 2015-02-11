@@ -22,11 +22,20 @@ class Node extends Item
 {
 	const FLAG_NONE = 0;
 	const FLAG_INITIAL = 1;
-	const FLAG_END = 2;
 	
+	/**
+	 * Custom flags of this node.
+	 * 
+	 * @var integer
+	 */
 	protected $flags = self::FLAG_NONE;
 	
-	protected $behaviors = [];
+	/**
+	 * Behavior implemented by this node.
+	 * 
+	 * @var BehaviorInterface
+	 */
+	protected $behavior;
 	
 	public function __toString()
 	{
@@ -46,18 +55,24 @@ class Node extends Item
 	}
 	
 	/**
-	 * Get all behaviors of this node.
+	 * Get the behavior implemented by the node.
 	 * 
 	 * @return BehaviorInterface
 	 */
-	public function getBehaviors()
+	public function getBehavior()
 	{
-		return $this->behaviors;
+		return $this->behavior;
 	}
 	
+	/**
+	 * Set the behavior implemented by the node.
+	 * 
+	 * @param BehaviorInterface $behavior
+	 * @return Node
+	 */
 	public function behavior(BehaviorInterface $behavior = NULL)
 	{
-		$this->behaviors[] = $behavior;
+		$this->behavior = $behavior;
 		
 		return $this;
 	}

@@ -33,9 +33,7 @@ class ProcessModel
 		{
 			if($item instanceof Node)
 			{
-				$behaviors = $item->getBehaviors();
-				
-				if(empty($behaviors))
+				if(NULL === $item->getBehavior())
 				{
 					throw new \RuntimeException(sprintf('Node "%s" does not declare a behavior', $item->getId()));
 				}
