@@ -14,7 +14,6 @@ namespace KoolKode\Process;
 use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\Command\CallbackCommand;
-use KoolKode\Process\Command\TakeTransitionCommand;
 use KoolKode\Process\Event\CreateExpressionContextEvent;
 use KoolKode\Process\Event\EndProcessEvent;
 use KoolKode\Util\UUID;
@@ -846,7 +845,7 @@ class Execution
 			$transition = $this->model->findTransition($transition);
 		}
 		
-		$this->engine->pushCommand(new TakeTransitionCommand($this, $transition));
+		$this->engine->pushCommand($this->engine->createTakeTransitionCommand($this, $transition));
 	}
 	
 	/**
