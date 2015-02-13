@@ -290,7 +290,6 @@ abstract class AbstractEngine implements EngineInterface
 				'count' => $this->executionCount
 			]);
 			
-			$this->executionDepth--;
 			$this->executionCount = $count;
 			
 			if(!empty($this->deferred))
@@ -317,6 +316,7 @@ abstract class AbstractEngine implements EngineInterface
 			}
 			
 			$this->deferred = $deferred;
+			$this->executionDepth--;
 			
 			$this->syncExecutions();
 		}
