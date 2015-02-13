@@ -14,10 +14,9 @@ namespace KoolKode\Process;
 use KoolKode\Expression\ExpressionContextInterface;
 use KoolKode\Process\Behavior\SignalableBehaviorInterface;
 use KoolKode\Process\Command\CallbackCommand;
+use KoolKode\Process\Command\TakeTransitionCommand;
 use KoolKode\Process\Event\CreateExpressionContextEvent;
 use KoolKode\Process\Event\EndProcessEvent;
-use KoolKode\Process\Event\LeaveNodeEvent;
-use KoolKode\Process\Event\TakeTransitionEvent;
 use KoolKode\Util\UUID;
 
 /**
@@ -723,6 +722,18 @@ class Execution
 	}
 	
 	/**
+	 * Set the current / last transition being taken by the execution.
+	 * 
+	 * @param Transition $transition
+	 */
+	public function setTransition(Transition $transition = NULL)
+	{
+		$this->transition = $transition;
+		
+		$this->markModified();
+	}
+	
+	/**
 	 * Get the model of the process being executed.
 	 * 
 	 * @return ProcessModel
@@ -830,94 +841,12 @@ class Execution
 			throw new \RuntimeException(sprintf('Cannot take transition in terminated %s', $this));
 		}
 		
-		$this->engine->pushCommand(new CallbackCommand(function() use($transition) {
-			
-			if($this->isConcurrent())
-			{
-				if(1 === count($this->findConcurrentExecutions()))
-				{
-					$this->terminate();
-			
-					$this->parentExecution->node = $this->node;
-					$this->parentExecution->transition = $this->transition;
-					$this->parentExecution->setActive(true);
-					
-					$this->engine->debug('Merged concurrent {execution} into {root}', [
-						'execution' => (string)$this,
-						'root' => (string)$this->parentExecution
-					]);
-			
-					return $this->parentExecution->take($transition);
-				}
-			}
-			
-			if($transition instanceof Transition)
-			{
-				$transition = $transition->getId();
-			}
-			
-			$trans = NULL;
-			$out = (array)$this->getProcessModel()->findOutgoingTransitions($this->node->getId());
-			
-			if($transition === NULL)
-			{
-				if(count($out) != 1)
-				{
-					throw new \RuntimeException(sprintf('No single outgoing transition found at node "%s"', $this->node->getId()));
-				}
-					
-				$trans = array_pop($out);
-			}
-			else
-			{
-				foreach($out as $tmp)
-				{
-					if($tmp->getId() === $transition)
-					{
-						$trans = $tmp;
-						break;
-					}
-				}
-					
-				if($trans === NULL)
-				{
-					throw new \RuntimeException(sprintf('Transition "%s" not connected to node "%s"', $transition, $this->node->getId()));
-				}
-			}
-			
-			if(!$trans->isEnabled($this))
-			{
-				$this->terminate();
-				
-				if($this->isConcurrent() && 0 == count($this->findConcurrentExecutions()))
-				{
-					$this->parentExecution->setActive(true);
-						
-					return $this->parentExecution->terminate();
-				}
-				
-				return;
-			}
-			
-			$this->engine->debug('{execution} leaves {node}', [
-				'execution' => (string)$this,
-				'node' => (string)$this->node
-			]);
-			$this->engine->notify(new LeaveNodeEvent($this->node, $this));
-			
-			$this->engine->debug('{execution} taking {transition}', [
-				'execution' => (string)$this,
-				'transition' => (string)$trans
-			]);
-			$this->engine->notify(new TakeTransitionEvent($trans, $this));
-			
-			$this->timestamp = microtime(true);
-			$this->transition = $trans;
-			
-			$this->markModified();
-			
-			$this->execute($this->getProcessModel()->findNode($trans->getTo()));
-		}));
+		if($transition !== NULL && !$transition instanceof Transition)
+		{
+			$transition = $this->model->findTransition($transition);
+		}
+		
+		$this->engine->pushCommand(new TakeTransitionCommand($this, $transition));
 	}
 	
 	/**

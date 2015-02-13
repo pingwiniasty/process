@@ -16,6 +16,7 @@ use KoolKode\Expression\ExpressionContextFactoryInterface;
 use KoolKode\Process\Command\CommandInterface;
 use KoolKode\Process\Command\ExecuteNodeCommand;
 use KoolKode\Process\Command\SignalExecutionCommand;
+use KoolKode\Process\Command\TakeTransitionCommand;
 use KoolKode\Util\UUID;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
@@ -130,6 +131,9 @@ abstract class AbstractEngine implements EngineInterface
 		return $this->expressionContextFactory;
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function findExecution(UUID $id)
 	{
 		$ref = (string)$id;
@@ -142,6 +146,9 @@ abstract class AbstractEngine implements EngineInterface
 		throw new \OutOfBoundsException(sprintf('Execution not found: %s', $ref));
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function registerExecution(Execution $execution)
 	{
 		if(empty($this->executions[(string)$execution->getId()]))
@@ -346,14 +353,28 @@ abstract class AbstractEngine implements EngineInterface
 		}
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function createExecuteNodeCommand(Execution $execution, Node $node)
 	{
 		return new ExecuteNodeCommand($execution, $node);
 	}
 	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = [])
 	{
 		return new SignalExecutionCommand($execution, $signal, $variables);
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function createTakeTransitionCommand(Execution $execution, Transition $transition = NULL)
+	{
+		return new TakeTransitionCommand($execution, $transition);
 	}
 	
 	protected function syncNewExecution(Execution $execution, array $syncData)

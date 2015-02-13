@@ -88,6 +88,15 @@ interface EngineInterface extends LoggerInterface
 	public function createExecuteNodeCommand(Execution $execution, Node $node);
 	
 	/**
+	 * Create a command that will move an execution using a single transition.
+	 * 
+	 * @param Execution $execution
+	 * @param Transition $transition
+	 * @return CommandInterface
+	 */
+	public function createTakeTransitionCommand(Execution $execution, Transition $transition = NULL);
+	
+	/**
 	 * Create a command that will signal an execution passing a signal and optional data.
 	 * 
 	 * @param Execution $execution
