@@ -61,6 +61,13 @@ abstract class AbstractEngine implements EngineInterface
 	protected $commands = [];
 	
 	/**
+	 * Keeps track of command results for later retrieval.
+	 * 
+	 * @var \SplObjectStorage
+	 */
+	protected $commandResults;
+	
+	/**
 	 * Delegate logger being used by the engine, can be NULL!
 	 * 
 	 * @var LoggerInterface
@@ -85,6 +92,8 @@ abstract class AbstractEngine implements EngineInterface
 	{
 		$this->eventDispatcher = $dispatcher;
 		$this->expressionContextFactory = $factory;
+		
+		$this->commandResults = new \SplObjectStorage();
 	}
 	
 	/**
@@ -159,16 +168,25 @@ abstract class AbstractEngine implements EngineInterface
 		
 		if($this->executionDepth == 0)
 		{
-			$this->performExecution(function() {
-				
-				while(!empty($this->commands))
-				{
-					$cmd = array_shift($this->commands);
-					$cmd->execute($this);
+			try
+			{
+				// Execute remaining commands when this is a top level execution.
+				$this->performExecution(function() {
 					
-					$this->executionCount++;
-				}
-			});
+					while(!empty($this->commands))
+					{
+						$cmd = array_shift($this->commands);
+						
+						$this->commandResults[$cmd] = $cmd->execute($this);
+						$this->executionCount++;
+					}
+				});
+			}
+			finally
+			{
+				// Free command result memory after top level execution.
+				$this->commandResults = new \SplObjectStorage();
+			}
 		}
 	}
 	
@@ -177,71 +195,53 @@ abstract class AbstractEngine implements EngineInterface
 	 */
 	public function executeCommand(CommandInterface $command)
 	{
-		return $this->performExecution(function() use($command) {
+		$this->storeCommand($command);
+		
+		$this->performExecution(function() use($command) {
 			
 			$priority = $command->getPriority();
 			
 			while(!empty($this->commands) && $this->commands[0]->getPriority() >= $priority)
 			{
 				$cmd = array_shift($this->commands);
-				$cmd->execute($this);
 				
+				$this->commandResults[$cmd] = $cmd->execute($this);
 				$this->executionCount++;
+				
+				if($cmd === $command)
+				{
+					// Bail out as soon as target command has been executed.
+					break;
+				}
 			}
-			
-			$result = $command->execute($this);
-			
-			$this->executionCount++;
 			
 			if($this->executionDepth == 1)
 			{
+				// Execute remaining commands if this is a top level execution.
 				while(!empty($this->commands))
 				{
 					$cmd = array_shift($this->commands);
-					$cmd->execute($this);
 					
+					$this->commandResults[$cmd] = $cmd->execute($this);
 					$this->executionCount++;
 				}
 			}
-			
-			return $result;
 		});
-		
-		
-		
-		$priority = $command->getPriority();
-		
-		while(!empty($this->commands) && $this->commands[0]->getPriority() >= $priority)
-		{
-			$cmd = array_shift($this->commands);
-			$cmd->execute($this);
-		}
-		
-		$commands = $this->commands;
-		$this->commands = [];
 		
 		try
 		{
-			return $this->performExecution(function() use($command) {
-				
-				$result = $command->execute($this);
-				
-				$this->executionCount++;
-				
-				while(!empty($this->commands))
-				{
-					$cmd = array_shift($this->commands);
-					$cmd->execute($this);
-					
-					$this->executionCount++;
-				}
-				
-				return $result;
-			});
+			if($this->commandResults->offsetExists($command))
+			{
+				return $this->commandResults[$command];
+			}
 		}
 		finally
 		{
-			$this->commands = $commands;
+			if($this->executionDepth == 0)
+			{
+				// Free command result memory after top level execution.
+				$this->commandResults = new \SplObjectStorage();
+			}
 		}
 	}
 	
@@ -290,7 +290,7 @@ abstract class AbstractEngine implements EngineInterface
 		
 		try
 		{
-			return $callback();
+			$result = $callback();
 		}
 		finally
 		{
@@ -301,9 +301,11 @@ abstract class AbstractEngine implements EngineInterface
 			
 			$this->executionCount = $count;
 			$this->executionDepth--;
-			
-			$this->syncExecutions();
 		}
+		
+		$this->syncExecutions();
+		
+		return $result;
 	}
 	
 	public function syncExecutions()
