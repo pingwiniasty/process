@@ -84,8 +84,7 @@ class StartProcessCommand extends AbstractCommand
 		$engine->registerExecution($process);
 		$engine->notify(new StartProcessEvent($this->startNode, $process));
 		
-		// Push deferred command to be executed in sync with outer execution.
-		$engine->pushDeferredCommand(new ExecuteNodeCommand($process, $this->startNode));
+		$process->execute($this->startNode);
 		
 		return $process;
 	}

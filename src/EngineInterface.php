@@ -45,14 +45,6 @@ interface EngineInterface extends LoggerInterface
 	public function pushCommand(CommandInterface $command);
 	
 	/**
-	 * Queue up a command to be executed by the process engine in the outer execution, that is
-	 * it will not be executed by the current call to executeCommand().
-	 *
-	 * @param CommandInterface $command
-	 */
-	public function pushDeferredCommand(CommandInterface $command);
-	
-	/**
 	 * Have the process engine execute the given command and return the result.
 	 * 
 	 * The engine will execute all pushed commands with higher priority before the target command. The target command

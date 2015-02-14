@@ -61,13 +61,6 @@ abstract class AbstractEngine implements EngineInterface
 	protected $commands = [];
 	
 	/**
-	 * Holds deferred commands pushed during the current execution.
-	 * 
-	 * @var array<CommandInterface>
-	 */
-	protected $deferred = [];
-	
-	/**
 	 * Delegate logger being used by the engine, can be NULL!
 	 * 
 	 * @var LoggerInterface
@@ -182,21 +175,40 @@ abstract class AbstractEngine implements EngineInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function pushDeferredCommand(CommandInterface $command)
-	{
-		if($this->executionDepth == 0)
-		{
-			return $this->pushCommand($command);
-		}
-		
-		$this->deferred[] = $command;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
 	public function executeCommand(CommandInterface $command)
 	{
+		return $this->performExecution(function() use($command) {
+			
+			$priority = $command->getPriority();
+			
+			while(!empty($this->commands) && $this->commands[0]->getPriority() >= $priority)
+			{
+				$cmd = array_shift($this->commands);
+				$cmd->execute($this);
+				
+				$this->executionCount++;
+			}
+			
+			$result = $command->execute($this);
+			
+			$this->executionCount++;
+			
+			if($this->executionDepth == 1)
+			{
+				while(!empty($this->commands))
+				{
+					$cmd = array_shift($this->commands);
+					$cmd->execute($this);
+					
+					$this->executionCount++;
+				}
+			}
+			
+			return $result;
+		});
+		
+		
+		
 		$priority = $command->getPriority();
 		
 		while(!empty($this->commands) && $this->commands[0]->getPriority() >= $priority)
@@ -269,9 +281,6 @@ abstract class AbstractEngine implements EngineInterface
 	 */
 	protected function performExecution(callable $callback)
 	{
-		$deferred = $this->deferred;
-		$this->deferred = [];
-		
 		$this->executionDepth++;
 		
 		$count = $this->executionCount;
@@ -291,31 +300,6 @@ abstract class AbstractEngine implements EngineInterface
 			]);
 			
 			$this->executionCount = $count;
-			
-			if(!empty($this->deferred))
-			{
-				foreach($this->deferred as $cmd)
-				{
-					$this->storeCommand($cmd);
-				}
-			
-				$this->debug('Pushed {count} deferred commands to the engine', [
-					'count' => count($this->deferred)
-				]);
-			
-				$this->performExecution(function() {
-						
-					while(!empty($this->commands))
-					{
-						$cmd = array_shift($this->commands);
-						$cmd->execute($this);
-							
-						$this->executionCount++;
-					}
-				});
-			}
-			
-			$this->deferred = $deferred;
 			$this->executionDepth--;
 			
 			$this->syncExecutions();
