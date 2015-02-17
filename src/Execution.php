@@ -33,7 +33,6 @@ class Execution
 	const STATE_ACTIVE = 4;
 	const STATE_CONCURRENT = 8;
 	const STATE_TERMINATE = 16;
-	const STATE_SCOPE_ROOT = 32;
 	
 	const SYNC_STATE_NO_CHANGE = 0;
 	const SYNC_STATE_MODIFIED = 1;
@@ -65,7 +64,7 @@ class Execution
 		
 		if($parentExecution === NULL)
 		{
-			$this->state |= self::STATE_SCOPE | self::STATE_SCOPE_ROOT;
+			$this->state |= self::STATE_SCOPE;
 		}
 		else
 		{
@@ -237,8 +236,10 @@ class Execution
 	 * @param Execution $execution
 	 * @return Execution
 	 */
-	protected function registerChildExecution(Execution $execution)
+	public function registerChildExecution(Execution $execution)
 	{
+		$execution->parentExecution = $this;
+		
 		if(!in_array($execution, $this->childExecutions, true))
 		{
 			$this->childExecutions[] = $execution;
@@ -258,7 +259,7 @@ class Execution
 	protected function childExecutionTerminated(Execution $execution, $triggerExecution = true)
 	{
 		$removed = false;
-		$scope = $execution->isScope();
+		$scope = $execution->isScope() || !$execution->isConcurrent();
 		
 		foreach($this->childExecutions as $index => $exec)
 		{
@@ -361,17 +362,12 @@ class Execution
 	 */
 	public function isScope()
 	{
+		if($this->parentExecution === NULL)
+		{
+			return true;
+		}
+		
 		return 0 != ($this->state & self::STATE_SCOPE);
-	}
-	
-	/**
-	 * Check if this execution is a scope for root variables.
-	 *
-	 * @return boolean
-	 */
-	public function isScopeRoot()
-	{
-		return 0 != ($this->state & self::STATE_SCOPE_ROOT);
 	}
 	
 	/**
@@ -413,14 +409,13 @@ class Execution
 	 * Create a nested execution as child execution.
 	 * 
 	 * @param ProcessModel $model
-	 * @param boolean $isRootScope
+	 * @param boolean $isScope
 	 * @return Execution
 	 */
-	public function createNestedExecution(ProcessModel $model, $isRootScope = true)
+	public function createNestedExecution(ProcessModel $model, $isScope = true)
 	{
 		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
-		$execution->setState(self::STATE_SCOPE, true);
-		$execution->setState(self::STATE_SCOPE_ROOT, $isRootScope);
+		$execution->setState(self::STATE_SCOPE, $isScope);
 		
 		$this->engine->registerExecution($execution);
 		$this->engine->debug('Created nested {execution} from {parent}', [
@@ -524,44 +519,66 @@ class Execution
 	}
 	
 	/**
-	 * Get the execution that is the root scope of this execution.
+	 * Get the variable scope of this execution (not necessarily the execution itself).
 	 * 
 	 * @return Execution
 	 */
-	public function getScopeRoot()
+	public function getScope()
 	{
-		if($this->parentExecution === NULL || $this->state & self::STATE_SCOPE_ROOT)
+		$exec = $this;
+		
+		while(!$exec->isScope())
 		{
-			return $this;
+			$exec = $exec->getParentExecution();
 		}
 		
-		return $this->parentExecution->getScopeRoot();
+		return $exec;
 	}
 	
 	/**
-	 * Check if the given variable is set in the current scope.
+	 * Fetch all variables visible to the execution.
+	 * 
+	 * @return array<string, mixed>
+	 */
+	protected function computeVariables()
+	{
+		if($this->parentExecution === NULL)
+		{
+			return $this->variables;
+		}
+		
+		if($this->isScope())
+		{
+			return array_merge($this->parentExecution->computeVariables(), $this->variables);
+		}
+		
+		return $this->parentExecution->computeVariables();
+	}
+	
+	/**
+	 * Check if the given variable is avialable (eighter in the scope or inherited).
 	 * 
 	 * @param string $name
 	 * @return boolean
 	 */
 	public function hasVariable($name)
 	{
-		return $this->getScopeRoot()->hasVariableLocal($name);
+		return array_key_exists($name, $this->computeVariables());
 	}
 	
 	/**
-	 * Check if the given variable is set in the current scope.
+	 * Check if the given variable is set in the scope of this execution.
 	 *
 	 * @param string $name
 	 * @return boolean
 	 */
 	public function hasVariableLocal($name)
 	{
-		return array_key_exists($name, $this->variables);
+		return array_key_exists($name, $this->getScope()->variables);
 	}
 	
 	/**
-	 * Get the value of the given variable in the current scope.
+	 * Get the value of the given variable eighter from the current scope or inherited.
 	 *
 	 * @param string $name
 	 * @param mixed $default
@@ -571,28 +588,11 @@ class Execution
 	 */
 	public function getVariable($name)
 	{
-		if(func_num_args() > 1)
-		{
-			return $this->getScopeRoot()->getVariableLocal($name, func_get_arg(1));
-		}
+		$vars = $this->computeVariables();
 		
-		return $this->getScopeRoot()->getVariableLocal($name);
-	}
-	
-	/**
-	 * Get the value of the given variable in the current scope.
-	 * 
-	 * @param string $name
-	 * @param mixed $default
-	 * @return mixed
-	 * 
-	 * @throws \OutOfBoundsException When the variable is not set and no default value is given.
-	 */
-	public function getVariableLocal($name)
-	{
-		if(array_key_exists($name, $this->variables))
+		if(array_key_exists($name, $vars))
 		{
-			return $this->variables[$name];
+			return $vars[$name];
 		}
 		
 		if(func_num_args() > 1)
@@ -600,7 +600,33 @@ class Execution
 			return func_get_arg(1);
 		}
 		
-		throw new \OutOfBoundsException(sprintf('Variable "%s" not set in scope', $name));
+		throw new \OutOfBoundsException(sprintf('Variable "%s" neighter set nor inherited in scope %s', $name, $this));
+	}
+	
+	/**
+	 * Get the value of the given variable in the current scope.
+	 *
+	 * @param string $name
+	 * @param mixed $default
+	 * @return mixed
+	 *
+	 * @throws \OutOfBoundsException When the variable is not set and no default value is given.
+	 */
+	public function getVariableLocal($name)
+	{
+		$vars = $this->getScope()->variables;
+	
+		if(array_key_exists($name, $vars))
+		{
+			return $vars[$name];
+		}
+	
+		if(func_num_args() > 1)
+		{
+			return func_get_arg(1);
+		}
+	
+		throw new \OutOfBoundsException(sprintf('Variable "%s" not found in scope %s', $name, $this));
 	}
 	
 	/**
@@ -612,58 +638,15 @@ class Execution
 	 */
 	public function setVariable($name, $value)
 	{
-		return $this->getScopeRoot()->setVariableLocal($name, $value);
-	}
-	
-	/**
-	 * Set the given variable in the current scope, setting a variable to a value of NULL will
-	 * remove the variable from the current scope.
-	 * 
-	 * @param string $name
-	 * @param mixed $value
-	 */
-	public function setVariableLocal($name, $value)
-	{
-		if($value === NULL)
+		$exec = $this;
+			
+		while(!$exec->isScope())
 		{
-			return $this->removeVariableLocal($name);
+			$exec = $exec->getParentExecution();
 		}
 		
-		$this->variables[$name] = $value;
-		
-		$this->engine->debug('Set variable {var} in {execution}', [
-			'var' => (string)$name,
-			'execution' => (string)$this
-		]);
-		
-		$this->markModified();
-	}
-	
-	/**
-	 * Remove the given variable from the current scope.
-	 *
-	 * @param string $name
-	 */
-	public function removeVariable($name)
-	{
-		return $this->getScopeRoot()->removeVariableLocal($name);
-	}
-	
-	/**
-	 * Remove the given variable from the current scope.
-	 * 
-	 * @param string $name
-	 */
-	public function removeVariableLocal($name)
-	{
-		unset($this->variables[$name]);
-		
-		$this->engine->debug('Removed variable {var} from {execution}', [
-			'var' => (string)$name,
-			'execution' => (string)$this
-		]);
-		
-		$this->markModified();
+		$exec->variables[(string)$name] = $value;
+		$exec->markModified();
 	}
 	
 	public function getVariablesLocal()
@@ -674,8 +657,6 @@ class Execution
 	public function setVariablesLocal(array $variables)
 	{
 		$this->variables = $variables;
-		
-		$this->markModified();
 	}
 	
 	/**
@@ -870,8 +851,6 @@ class Execution
 			{
 				if(1 === count($this->findConcurrentExecutions()))
 				{
-					$this->mergeExecutionIntoRoot();
-					
 					foreach($recycle as $rec)
 					{
 						foreach($recycle as $rec)
@@ -883,6 +862,11 @@ class Execution
 						{
 							$this->terminate();
 						}
+					}
+					
+					foreach($this->findChildExecutions() as $child)
+					{
+						$this->parentExecution->registerChildExecution($child);
 					}
 					
 					$this->parentExecution->node = $this->node;
@@ -962,8 +946,6 @@ class Execution
 			
 			if(count($transitions) == 1 && empty($active) && $merge)
 			{
-				$this->mergeExecutionIntoRoot();
-				
 				$terminated = 0;
 				
 				foreach($recycle as $rec)
@@ -975,11 +957,12 @@ class Execution
 						$terminated++;
 					}
 				}
-					
-				$root->setNode($this->node);
+				
 				$this->setState(self::STATE_CONCURRENT, false);
+				
+				$root->setNode($this->node);
 				$root->setActive(true);
-					
+				
 				if($terminated > 0)
 				{
 					$this->engine->debug('Merged {count} concurrent executions into {execution}', [
@@ -1032,11 +1015,6 @@ class Execution
 	}
 	
 	/**
-	 * Callback being invoked whenever the executions are compacted during processing of transitions.
-	 */
-	public function mergeExecutionIntoRoot() { }
-	
-	/**
 	 * Introduce a new concurrent root as parent of this execution.
 	 * 
 	 * @param boolean $active
@@ -1053,8 +1031,7 @@ class Execution
 		$root = new static(UUID::createRandom(), $this->engine, $this->model, $parent);
 		$root->setActive($active);
 		$root->variables = $this->variables;
-		$root->setState(self::STATE_SCOPE, true);
-		$root->setState(self::STATE_SCOPE_ROOT, $this->isScopeRoot());
+		$root->setState(self::STATE_SCOPE, $this->isScope());
 	
 		if($parent !== NULL)
 		{
@@ -1070,7 +1047,6 @@ class Execution
 		$this->setParentExecution($root);
 		$this->setState(self::STATE_CONCURRENT, true);
 		$this->setState(self::STATE_SCOPE, false);
-		$this->setState(self::STATE_SCOPE_ROOT, false);
 		$this->variables = [];
 	
 		$this->markModified();

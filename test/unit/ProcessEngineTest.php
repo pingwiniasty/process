@@ -610,7 +610,7 @@ class ProcessEngineTest extends ProcessTestCase
 		$this->assertEquals(1, $this->processEngine->countWaiting($process));
 		
 		$this->processEngine->signalAll($process);
-		$process->removeVariable('reject');
+		$process->setVariable('reject', false);
 		
 		$this->assertEquals(1, $this->processEngine->countWaiting($process));
 		
@@ -764,13 +764,21 @@ class ProcessEngineTest extends ProcessTestCase
 			$this->assertTrue($nested->hasVariableLocal('tmp'));
 			$this->assertTrue($process->hasVariableLocal('subject'));
 			$this->assertFalse($process->hasVariableLocal('tmp'));
+			$this->assertTrue($nested->hasVariable('subject'));
+			$this->assertTrue($nested->hasVariable('tmp'));
+			$this->assertTrue($process->hasVariable('subject'));
+			$this->assertFalse($process->hasVariable('tmp'));
 		}
 		else
 		{
-			$this->assertFalse($nested->hasVariableLocal('subject'));
-			$this->assertFalse($nested->hasVariableLocal('tmp'));
+			$this->assertTrue($nested->hasVariableLocal('subject'));
+			$this->assertTrue($nested->hasVariableLocal('tmp'));
 			$this->assertTrue($process->hasVariableLocal('subject'));
 			$this->assertTrue($process->hasVariableLocal('tmp'));
+			$this->assertTrue($nested->hasVariable('subject'));
+			$this->assertTrue($nested->hasVariable('tmp'));
+			$this->assertTrue($process->hasVariable('subject'));
+			$this->assertTrue($process->hasVariable('tmp'));
 		}
 	}
 }

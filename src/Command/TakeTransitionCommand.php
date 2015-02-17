@@ -70,10 +70,13 @@ class TakeTransitionCommand extends AbstractCommand
 		{
 			if(1 === count($execution->findConcurrentExecutions()))
 			{
-				$execution->mergeExecutionIntoRoot();
-				
 				$parent = $execution->getParentExecution();
-					
+				
+				foreach($execution->findChildExecutions() as $child)
+				{
+					$parent->registerChildExecution($child);
+				}
+				
 				$parent->setNode($execution->getNode());
 				$parent->setTransition($execution->getTransition());
 				$parent->setActive(true);
