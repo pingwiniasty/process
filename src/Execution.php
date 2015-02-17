@@ -870,6 +870,8 @@ class Execution
 			{
 				if(1 === count($this->findConcurrentExecutions()))
 				{
+					$this->mergeExecutionIntoRoot();
+					
 					foreach($recycle as $rec)
 					{
 						foreach($recycle as $rec)
@@ -882,18 +884,18 @@ class Execution
 							$this->terminate();
 						}
 					}
-						
+					
 					$this->parentExecution->node = $this->node;
 					$this->parentExecution->transition = $this->transition;
 					$this->parentExecution->setActive(true);
-					
+						
 					$this->engine->debug('Merged concurrent {execution} into {root}', [
 						'execution' => (string)$this,
 						'root' => (string)$this->parentExecution
 					]);
-					
-					$this->markModified();
 						
+					$this->markModified();
+					
 					return $this->parentExecution->takeAll($transitions);
 				}
 			}
@@ -960,6 +962,8 @@ class Execution
 			
 			if(count($transitions) == 1 && empty($active) && $merge)
 			{
+				$this->mergeExecutionIntoRoot();
+				
 				$terminated = 0;
 				
 				foreach($recycle as $rec)
@@ -1026,6 +1030,11 @@ class Execution
 			}
 		}));
 	}
+	
+	/**
+	 * Callback being invoked whenever the executions are compacted during processing of transitions.
+	 */
+	public function mergeExecutionIntoRoot() { }
 	
 	/**
 	 * Introduce a new concurrent root as parent of this execution.
