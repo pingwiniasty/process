@@ -69,14 +69,7 @@ class Transition extends Item
 	
 	public function trigger(TriggerInterface $trigger)
 	{
-		if($this->triggers === NULL)
-		{
-			$this->triggers = [$trigger];
-		}
-		else
-		{
-			$this->triggers[] = $trigger;
-		}
+		$this->triggers[] = $trigger;
 	}
 	
 	public function isEnabled(Execution $execution)

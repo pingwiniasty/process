@@ -62,6 +62,8 @@ class SignalExecutionCommand extends AbstractCommand
 	
 	/**
 	 * {@inheritdoc}
+	 * 
+	 * @codeCoverageIgnore
 	 */
 	public function isSerializable()
 	{

@@ -55,6 +55,8 @@ class StartProcessCommand extends AbstractCommand
 	
 	/**
 	 * {@inheritdoc}
+	 * 
+	 * @codeCoverageIgnore
 	 */
 	public function isSerializable()
 	{

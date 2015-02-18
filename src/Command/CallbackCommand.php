@@ -38,6 +38,8 @@ class CallbackCommand implements CommandInterface
 	
 	/**
 	 * {@inheritdoc}
+	 * 
+	 * @codeCoverageIgnore
 	 */
 	public function isSerializable()
 	{

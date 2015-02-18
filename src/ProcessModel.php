@@ -43,6 +43,11 @@ class ProcessModel
 		$this->items = $items;
 	}
 	
+	/**
+	 * Perform a deep copy of the process model.
+	 * 
+	 * @codeCoverageIgnore
+	 */
 	public function __clone()
 	{
 		foreach($this->items as & $item)
@@ -73,46 +78,41 @@ class ProcessModel
 			return $id;
 		}
 		
+		if(empty($this->items[$id]))
+		{
+			throw new \OutOfBoundsException(sprintf('Item not found: "%s"', $id));
+		}
+		
 		return $this->items[$id];
 	}
 	
 	public function findNodes()
 	{
-		$nodes = [];
-		
-		foreach($this->items as $item)
-		{
-			if($item instanceof Node)
-			{
-				$nodes[] = $item;
-			}
-		}
-		
-		return $nodes;
+		return array_values(array_filter($this->items, function(Item $item) {
+			return $item instanceof Node;
+		}));
 	}
 	
 	public function findNode($id)
 	{
 		if($id instanceof Node)
 		{
-			$node = $id;
+			return $id;
 		}
-		else
-		{
-			if(empty($this->items[$id]))
-			{
-				throw new \OutOfBoundsException(sprintf('No such node found: "%s"', $id));
-			}
-			
-			$node = $this->items[$id];
-		}
-		
-		if(!$node instanceof Node)
+
+		if(empty($this->items[$id]) || !$this->items[$id] instanceof Node)
 		{
 			throw new \OutOfBoundsException(sprintf('No such node found: "%s"', $id));
 		}
 		
-		return $node;
+		return $this->items[$id];
+	}
+	
+	public function findTransitions()
+	{
+		return array_values(array_filter($this->items, function(Item $item) {
+			return $item instanceof Transition;
+		}));
 	}
 	
 	public function findTransition($id)
@@ -122,19 +122,12 @@ class ProcessModel
 			return $id;
 		}
 		
-		if(empty($this->items[$id]))
+		if(empty($this->items[$id]) || !$this->items[$id] instanceof Transition)
 		{
 			throw new \OutOfBoundsException(sprintf('No such transition found: "%s"', $id));
 		}
 			
-		$trans = $this->items[$id];
-	
-		if(!$trans instanceof Transition)
-		{
-			throw new \OutOfBoundsException(sprintf('No such transition found: "%s"', $id));
-		}
-	
-		return $trans;
+		return $this->items[$id];
 	}
 	
 	public function findIncomingTransitions($id)

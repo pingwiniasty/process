@@ -364,6 +364,11 @@ class Execution
 	 */
 	public function terminate($triggerExecution = true)
 	{
+		if($this->hasState(self::STATE_TERMINATE))
+		{
+			return;
+		}
+		
 		$this->state |= self::STATE_TERMINATE;
 		$this->syncState = self::SYNC_STATE_REMOVED;
 		
@@ -373,10 +378,7 @@ class Execution
 		
 		foreach($this->childExecutions as $execution)
 		{
-			if(!$execution->isTerminated())
-			{
-				$execution->terminate(false);
-			}
+			$execution->terminate(false);
 		}
 		
 		if($this->parentExecution === NULL)
@@ -446,16 +448,6 @@ class Execution
 	}
 	
 	/**
-	 * Get the internal state of this execution.
-	 * 
-	 * @return string
-	 */
-	public function getState()
-	{
-		return $this->state;
-	}
-	
-	/**
 	 * Check if the path of execution is active.
 	 * 
 	 * @return boolean
@@ -475,17 +467,6 @@ class Execution
 		$this->setState(self::STATE_ACTIVE, $active);
 		
 		$this->markModified();
-	}
-	
-	/**
-	 * Get microtime timestamp of the last activity being performed within this path
-	 * of execution.
-	 * 
-	 * @return float
-	 */
-	public function getTimestamp()
-	{
-		return $this->timestamp;
 	}
 	
 	public function setTimestamp($timestamp)
@@ -641,19 +622,6 @@ class Execution
 		
 		return array_filter($this->parentExecution->findChildExecutions($node), function(Execution $execution) {
 			return $execution->isConcurrent() && !$execution->isActive();
-		});
-	}
-	
-	/**
-	 * Find all waiting child executions.
-	 * 
-	 * @param Node $node Optional filter, return only executions that have arrived at the given node.
-	 * @return array<Execution> All matching waiting child executions.
-	 */
-	public function findWaitingExecutions(Node $node = NULL)
-	{
-		return array_filter($this->findChildExecutions($node), function(Execution $execution) {
-			return $execution->isActive() && $execution->isWaiting();
 		});
 	}
 	
@@ -878,16 +846,14 @@ class Execution
 		
 		while($exec !== NULL)
 		{
-			if($exec->isScopeRoot())
-			{
-				$exec->removeVariableLocal($name);
-				
-				break;
-			}
-			
 			if($exec->isScope())
 			{
 				$exec->removeVariableLocal($name);
+			}
+			
+			if($exec->isScopeRoot())
+			{
+				break;
 			}
 			
 			$exec = $exec->getParentExecution();
@@ -954,16 +920,6 @@ class Execution
 		$this->node = $node;
 		
 		$this->markModified();
-	}
-	
-	/**
-	 * Check if there has been a transition being taken.
-	 * 
-	 * @return boolean
-	 */
-	public function hasTransition()
-	{
-		return $this->transition !== NULL;
 	}
 	
 	/**
@@ -1132,11 +1088,8 @@ class Execution
 						{
 							$rec->terminate();
 						}
-							
-						if(!$this->isTerminated())
-						{
-							$this->terminate();
-						}
+
+						$this->terminate();
 					}
 					
 					foreach($this->findChildExecutions() as $child)
@@ -1185,11 +1138,8 @@ class Execution
 				{
 					$rec->terminate();
 				}
-					
-				if(!$this->isTerminated())
-				{
-					$this->terminate();
-				}
+				
+				$this->terminate();
 					
 				if($this->isConcurrent() && 0 == count($this->findConcurrentExecutions()))
 				{
@@ -1276,10 +1226,7 @@ class Execution
 		
 			foreach($recycle as $rec)
 			{
-				if(!$rec->isTerminated())
-				{
-					$rec->terminate();
-				}
+				$rec->terminate();
 			}
 		
 			foreach($outgoing as $out)
@@ -1350,11 +1297,6 @@ class Execution
 	protected function hasState($state)
 	{
 		return $state === ($this->state & $state);
-	}
-	
-	protected function hasAnyState($state)
-	{
-		return 0 != ($this->state & $state);
 	}
 	
 	protected function setState($state, $flag)

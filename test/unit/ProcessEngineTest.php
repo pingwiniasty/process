@@ -41,6 +41,7 @@ class ProcessEngineTest extends ProcessTestCase
 		
 		$process = $this->processEngine->startProcess($builder->build());
 
+		$this->assertTrue($process->isRootExecution());
 		$this->assertFalse($process->isTerminated());
 		$this->assertFalse($process->isActive());
 		$this->assertEquals(3, $this->processEngine->countWaiting($process));
@@ -153,13 +154,17 @@ class ProcessEngineTest extends ProcessTestCase
 		$builder->transition('t5', 'gate', 'C');
 		$builder->transition('t6', 'gate', 'D');
 		
-		$builder->node('C')->behavior(new WaitStateBehavior());
-		$builder->transition('t7', 'C', 'end');
+		$builder2 = new ProcessBuilder('Gate Part 2');
 		
-		$builder->passNode('D');
-		$builder->transition('t8', 'D', 'end');
+		$builder2->node('C')->behavior(new WaitStateBehavior());
+		$builder2->transition('t7', 'C', 'end');
 		
-		$builder->passNode('end');
+		$builder2->passNode('D');
+		$builder2->transition('t8', 'D', 'end');
+		
+		$builder2->passNode('end');
+		
+		$builder->append($builder2);
 		
 		$process = $this->processEngine->startProcess($builder->build());
 		

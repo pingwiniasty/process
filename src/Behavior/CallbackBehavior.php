@@ -29,6 +29,8 @@ class CallbackBehavior implements BehaviorInterface, \Serializable
 	
 	/**
 	 * {@inheritdoc}
+	 * 
+	 * @codeCoverageIgnore
 	 */
 	public function serialize()
 	{

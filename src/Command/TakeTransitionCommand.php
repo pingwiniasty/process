@@ -53,6 +53,8 @@ class TakeTransitionCommand extends AbstractCommand
 	
 	/**
 	 * {@inheritdoc}
+	 * 
+	 * @codeCoverageIgnore
 	 */
 	public function isSerializable()
 	{

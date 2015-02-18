@@ -108,6 +108,8 @@ abstract class AbstractEngine implements EngineInterface
 	
 	/**
 	 * {@inheritdoc}
+	 * 
+	 * @codeCoverageIgnore
 	 */
 	public function log($level, $message, array $context = NULL)
 	{

@@ -12,7 +12,6 @@
 namespace KoolKode\Process;
 
 use KoolKode\Process\Behavior\PassBehavior;
-use KoolKode\Process\Behavior\TerminateBehavior;
 
 /**
  * The process builder is a convenient ultility for programmatic construction of process models.
@@ -64,16 +63,6 @@ class ProcessBuilder
 	public function startNode($id)
 	{
 		return $this->passNode($id)->initial();
-	}
-	
-	/**
-	 * 
-	 * @param unknown $id
-	 * @return \KoolKode\Process\Node
-	 */
-	public function endNode($id)
-	{
-		return $this->passNode($id)->behavior(new TerminateBehavior());
 	}
 	
 	/**
