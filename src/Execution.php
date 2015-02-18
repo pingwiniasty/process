@@ -826,14 +826,18 @@ class Execution
 	}
 	
 	/**
-	 * Set the given variable in the current scope, setting a variable to a value of NULL will
-	 * remove the variable from the current scope.
+	 * Set the given variable in the scope root, passing a value of NULL will remove the variable.
 	 *
 	 * @param string $name
 	 * @param mixed $value
 	 */
 	public function setVariable($name, $value)
 	{
+		if($value === NULL)
+		{
+			return $this->removeVariable($name);
+		}
+		
 		return $this->getScopeRoot()->setVariableLocal($name, $value);
 	}
 	
