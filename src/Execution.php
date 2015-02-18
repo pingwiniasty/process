@@ -926,6 +926,11 @@ class Execution
 	 */
 	public function getVariablesLocal()
 	{
+		if($this->isScope())
+		{
+			return $this->variables;
+		}
+		
 		return $this->getScope()->getVariablesLocal();
 	}
 	
