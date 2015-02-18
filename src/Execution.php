@@ -834,15 +834,77 @@ class Execution
 	 */
 	public function setVariable($name, $value)
 	{
-		$exec = $this;
-			
-		while(!$exec->isScope())
+		return $this->getScopeRoot()->setVariableLocal($name, $value);
+	}
+	
+	/**
+	 * Set the given variable in the current scope, setting a variable to a value of NULL will
+	 * remove the variable from the current scope.
+	 *
+	 * @param string $name
+	 * @param mixed $value
+	 */
+	public function setVariableLocal($name, $value)
+	{
+		if(!$this->isScope())
 		{
-			$exec = $exec->getParentExecution();
+			return $this->getScope()->setVariableLocal($name, $value);
 		}
 		
-		$exec->variables[(string)$name] = $value;
-		$exec->markModified();
+		if($value === NULL)
+		{
+			unset($this->variables[(string)$name]);
+		}
+		else
+		{
+			$this->variables[(string)$name] = $value;
+		}
+		
+		$this->markModified();
+	}
+	
+	/**
+	 * Remove a variable, will remove the variable from all parent scopes up to the scope root.
+	 * 
+	 * @param string $name
+	 */
+	public function removeVariable($name)
+	{
+		$exec = $this;
+		
+		while($exec !== NULL)
+		{
+			if($exec->isScopeRoot())
+			{
+				$exec->removeVariableLocal($name);
+				
+				break;
+			}
+			
+			if($exec->isScope())
+			{
+				$exec->removeVariableLocal($name);
+			}
+			
+			$exec = $exec->getParentExecution();
+		}
+	}
+	
+	/**
+	 * Remove the given variable from the current scope.
+	 * 
+	 * @param string $name
+	 */
+	public function removeVariableLocal($name)
+	{
+		if(!$this->isScope())
+		{
+			return $this->getScope()->removeVariableLocal($name);
+		}
+		
+		unset($this->variables[(string)$name]);
+		
+		$this->markModified();
 	}
 	
 	/**

@@ -768,9 +768,9 @@ class ProcessEngineTest extends ProcessTestCase
 		else
 		{
 			$this->assertFalse($nested->hasVariableLocal('subject'));
-			$this->assertTrue($nested->hasVariableLocal('tmp'));
+			$this->assertFalse($nested->hasVariableLocal('tmp'));
 			$this->assertTrue($process->hasVariableLocal('subject'));
-			$this->assertFalse($process->hasVariableLocal('tmp'));
+			$this->assertTrue($process->hasVariableLocal('tmp'));
 		}
 	}
 }
