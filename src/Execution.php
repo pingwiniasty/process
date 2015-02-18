@@ -27,32 +27,159 @@ class Execution
 {
 	const KEY_EXECUTION = '@execution';
 	
+	/**
+	 * State: No state set.
+	 * 
+	 * @var integer
+	 */
 	const STATE_NONE = 0;
+	
+	/**
+	 * State: Execution is waiting for a signal.
+	 * 
+	 * @var integer
+	 */
 	const STATE_WAIT = 1;
+	
+	/**
+	 * State: Execution is a variable scope.
+	 *
+	 * @var integer
+	 */
 	const STATE_SCOPE = 2;
+	
+	/**
+	 * State: Execution is active.
+	 *
+	 * @var integer
+	 */
 	const STATE_ACTIVE = 4;
+	
+	/**
+	 * State: Execution is a concurrent child execution.
+	 *
+	 * @var integer
+	 */
 	const STATE_CONCURRENT = 8;
+	
+	/**
+	 * State: Execution has been terminated.
+	 *
+	 * @var integer
+	 */
 	const STATE_TERMINATE = 16;
 	
+	/**
+	 * State:Execution is an independent root scope (a nested process without shared variables
+	 * likely even using a different process model).
+	 *
+	 * @var integer
+	 */
+	const STATE_SCOPE_ROOT = 32;
+	
+	/**
+	 * Sync state: Nothing changed.
+	 * 
+	 * @var integer
+	 */
 	const SYNC_STATE_NO_CHANGE = 0;
+	
+	/**
+	 * Sync state: Execution has been modified.
+	 *
+	 * @var integer
+	 */
 	const SYNC_STATE_MODIFIED = 1;
+	
+	/**
+	 * Sync state: Execution has been removed / terminated.
+	 *
+	 * @var integer
+	 */
 	const SYNC_STATE_REMOVED = 2;
 	
+	/**
+	 * Unique execution ID.
+	 * 
+	 * @var UUID
+	 */
 	protected $id;
+	
+	/**
+	 * Current state of the execution, bitwise combination of Execution::STATE_* constants.
+	 * 
+	 * @var integer
+	 */
 	protected $state = self::STATE_ACTIVE;
+	
+	/**
+	 * Current sync state of the execution, one of the Execution::SYNC_STATE_* constants.
+	 * 
+	 * @var integer
+	 */
 	protected $syncState = self::SYNC_STATE_NO_CHANGE;
+	
+	/**
+	 * Snapshot of the execution's state after the last sync operation.
+	 * 
+	 * @var array
+	 */
 	protected $syncData = [];
 	
+	/**
+	 * Timestamp (including millis) of the last activity being performed by the execution.
+	 * 
+	 * @var float
+	 */
 	protected $timestamp = 0;
+	
+	/**
+	 * Local scope variables, must be empty if the execution is not a scope.
+	 * 
+	 * @var array<string, mixed>
+	 */
 	protected $variables = [];
 	
+	/**
+	 * Holds a reference to the model of the process being executed.
+	 * 
+	 * @var ProcessModel
+	 */
 	protected $model;
+	
+	/**
+	 * The last transition being taken by the execution.
+	 * 
+	 * @var Transition
+	 */
 	protected $transition;
+	
+	/**
+	 * The current node the execution is positioned at.
+	 * 
+	 * @var Node
+	 */
 	protected $node;
 	
+	/**
+	 * Holds a reference to the parent execution, or NULL if this execution is the root of an execution tree.
+	 * 
+	 * @var Execution
+	 */
 	protected $parentExecution;
+	
+	/**
+	 * Holds references to all nested child executions.
+	 * 
+	 * @var array<Execution>
+	 */
 	protected $childExecutions = [];
 	
+	/**
+	 * The process engine being used to automate the process.
+	 * 
+	 * @var EngineInterface
+	 */
 	protected $engine;
 	
 	public function __construct(UUID $id, EngineInterface $engine, ProcessModel $model, Execution $parentExecution = NULL)
@@ -101,11 +228,23 @@ class Execution
 		return $data;
 	}
 	
+	/**
+	 * Get the current sync state.
+	 * 
+	 * @return integer One of the Execution::SYNC_STATE_* constants.
+	 */
 	public function getSyncState()
 	{
 		return $this->syncState;
 	}
 	
+	/**
+	 * Set the current sync state.
+	 * 
+	 * @param integer $state One of the Execution::SYNC_STATE_* constants.
+	 * 
+	 * @throws \InvalidArgumentException When an invalid sync state value has been given.
+	 */
 	public function setSyncState($state)
 	{
 		switch((int)$state)
@@ -122,16 +261,31 @@ class Execution
 		$this->syncState = (int)$state;
 	}
 	
+	/**
+	 * Get the last sync data related to the execution.
+	 * 
+	 * @return array
+	 */
 	public function getSyncData()
 	{
 		return $this->syncData;
 	}
 	
+	/**
+	 * Set last sync data for this execution.
+	 * 
+	 * @param array $data
+	 */
 	public function setSyncData(array $data)
 	{
 		$this->syncData = $data;
 	}
 	
+	/**
+	 * Compute current sync data from execution state.
+	 * 
+	 * @return array
+	 */
 	public function collectSyncData()
 	{
 		$data = [
@@ -150,6 +304,11 @@ class Execution
 		return $data;
 	}
 	
+	/**
+	 * Compute current execution depth.
+	 * 
+	 * @return number
+	 */
 	public function getExecutionDepth()
 	{
 		return ($this->parentExecution === NULL) ? 0 : $this->parentExecution->getExecutionDepth() + 1;
@@ -259,7 +418,8 @@ class Execution
 	protected function childExecutionTerminated(Execution $execution, $triggerExecution = true)
 	{
 		$removed = false;
-		$scope = $execution->isScope() || !$execution->isConcurrent();
+		$scope = $execution->isScope();
+// 		$scope = $execution->isScope() || !$execution->isConcurrent();
 		
 		foreach($this->childExecutions as $index => $exec)
 		{
@@ -383,6 +543,8 @@ class Execution
 	/**
 	 * Create a new child execution and register it with the process engine.
 	 * 
+	 * Created executions are unscoped by default.
+	 * 
 	 * @param boolean $concurrent
 	 * @return Execution
 	 */
@@ -410,12 +572,14 @@ class Execution
 	 * 
 	 * @param ProcessModel $model
 	 * @param boolean $isScope
+	 * @param boolean $isScopeRoot
 	 * @return Execution
 	 */
-	public function createNestedExecution(ProcessModel $model, $isScope = true)
+	public function createNestedExecution(ProcessModel $model, $isScope = true, $isScopeRoot = false)
 	{
 		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
 		$execution->setState(self::STATE_SCOPE, $isScope);
+		$execution->setState(self::STATE_SCOPE_ROOT, $isScopeRoot);
 		
 		$this->engine->registerExecution($execution);
 		$this->engine->debug('Created nested {execution} from {parent}', [
@@ -527,7 +691,39 @@ class Execution
 	{
 		$exec = $this;
 		
-		while(!$exec->isScope())
+		while(!$exec->isScope() && !$exec->isScopeRoot())
+		{
+			$exec = $exec->getParentExecution();
+		}
+		
+		return $exec;
+	}
+	
+	/**
+	 * Check if this execution is scope root (process instance or nested execution with isolated scope).
+	 * 
+	 * @return boolean
+	 */
+	public function isScopeRoot()
+	{
+		if($this->parentExecution === NULL)
+		{
+			return true;
+		}
+		
+		return $this->hasState(self::STATE_SCOPE_ROOT);
+	}
+	
+	/**
+	 * Get the closest scope root starting form the execution.
+	 * 
+	 * @return Execution
+	 */
+	public function getScopeRoot()
+	{
+		$exec = $this;
+		
+		while(!$exec->isScopeRoot())
 		{
 			$exec = $exec->getParentExecution();
 		}
@@ -542,7 +738,7 @@ class Execution
 	 */
 	protected function computeVariables()
 	{
-		if($this->parentExecution === NULL)
+		if($this->isScopeRoot())
 		{
 			return $this->variables;
 		}
@@ -649,14 +845,22 @@ class Execution
 		$exec->markModified();
 	}
 	
-	public function getVariablesLocal()
+	/**
+	 * Get a map of all variables visible to the execution.
+	 * 
+	 * @return array<string, mixed>
+	 */
+	public function getVariables()
 	{
-		return (array)$this->variables;
+		return $this->computeVariables();
 	}
 	
-	public function setVariablesLocal(array $variables)
+	/**
+	 * Get a map of all variables being set in the scope of the execution.
+	 */
+	public function getVariablesLocal()
 	{
-		$this->variables = $variables;
+		return $this->getScope()->getVariablesLocal();
 	}
 	
 	/**
@@ -878,7 +1082,7 @@ class Execution
 						'root' => (string)$this->parentExecution
 					]);
 						
-					$this->markModified();
+					$this->markModified(true);
 					
 					return $this->parentExecution->takeAll($transitions);
 				}
@@ -971,7 +1175,7 @@ class Execution
 					]);
 				}
 				
-				$this->markModified();
+				$this->markModified(true);
 				
 				return $root->take(array_shift($transitions));
 			}
@@ -1056,11 +1260,19 @@ class Execution
 		return $root;
 	}
 	
-	public function markModified()
+	public function markModified($deep = false)
 	{
 		if($this->syncState !== self::SYNC_STATE_REMOVED)
 		{
 			$this->syncState = self::SYNC_STATE_MODIFIED;
+		}
+		
+		if($deep)
+		{
+			foreach($this->childExecutions as $child)
+			{
+				$child->markModified($deep);
+			}
 		}
 	}
 	

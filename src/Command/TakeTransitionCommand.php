@@ -80,6 +80,7 @@ class TakeTransitionCommand extends AbstractCommand
 				$parent->setNode($execution->getNode());
 				$parent->setTransition($execution->getTransition());
 				$parent->setActive(true);
+				$parent->markModified(true);
 				
 				$engine->debug('Merged concurrent {execution} into {root}', [
 					'execution' => (string)$execution,
