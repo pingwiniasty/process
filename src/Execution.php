@@ -420,8 +420,7 @@ class Execution
 	protected function childExecutionTerminated(Execution $execution, $triggerExecution = true)
 	{
 		$removed = false;
-		$scope = $execution->isScope();
-// 		$scope = $execution->isScope() || !$execution->isConcurrent();
+		$scope = $execution->isScope() || !$execution->isConcurrent();
 		
 		foreach($this->childExecutions as $index => $exec)
 		{
