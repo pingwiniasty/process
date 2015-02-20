@@ -491,6 +491,8 @@ class Execution
 	public function setConcurrent($concurrent)
 	{
 		$this->setState(self::STATE_CONCURRENT, $concurrent);
+		
+		$this->markModified();
 	}
 	
 	/**
@@ -526,6 +528,13 @@ class Execution
 	public function setScope($scope)
 	{
 		$this->setState(self::STATE_SCOPE, $scope);
+		
+		if(!$scope)
+		{
+			$this->variables = [];
+		}
+		
+		$this->markModified();
 	}
 	
 	/**
