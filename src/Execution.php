@@ -484,6 +484,16 @@ class Execution
 	}
 	
 	/**
+	 * Set concurrent state of the execution.
+	 * 
+	 * @param boolean $concurrent
+	 */
+	public function setConcurrent($concurrent)
+	{
+		$this->setState(self::STATE_CONCURRENT, $concurrent);
+	}
+	
+	/**
 	 * Check if this execution is waiting for a signal.
 	 * 
 	 * @return boolean
@@ -506,6 +516,16 @@ class Execution
 		}
 		
 		return 0 != ($this->state & self::STATE_SCOPE);
+	}
+	
+	/**
+	 * Toggle scope of the execution.
+	 *
+	 * @param boolean $scope
+	 */
+	public function setScope($scope)
+	{
+		$this->setState(self::STATE_SCOPE, $scope);
 	}
 	
 	/**
