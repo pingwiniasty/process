@@ -53,16 +53,30 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 			}
 		}
 		
+		// Collect recycled executions, initialize with current execution:
+		$recycle = [$execution->getTransition()->getId() => $execution];
+		
+		foreach($execution->findInactiveConcurrentExecutions($execution->getNode()) as $concurrent)
+		{
+			// Collect at most 1 execution per incoming transition.
+			$transId = $concurrent->getTransition()->getId();
+			
+			if(empty($recycle[$transId]))
+			{
+				$recycle[$transId] = $concurrent;
+			}
+		}
+		
 		if(!empty($take))
 		{
-			return $execution->takeAll($take);
+			return $execution->takeAll($take, $recycle);
 		}
 		
 		if($this->defaultTransition !== NULL)
 		{
-			return $execution->take($this->defaultTransition);
+			return $execution->takeAll([$this->defaultTransition], $recycle);
 		}
-	
+		
 		$execution->terminate();
 	}
 	
@@ -73,7 +87,7 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 			return false;
 		}
 		
-		foreach($execution->getRootExecution()->findConcurrentExecutions() as $concurrent)
+		foreach($execution->findConcurrentExecutions() as $concurrent)
 		{
 			if($concurrent === $execution)
 			{
