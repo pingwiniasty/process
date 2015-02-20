@@ -25,11 +25,14 @@ class SignalNodeEvent extends AbstractProcessEvent
 	
 	public $variables;
 	
-	public function __construct(Item $source, Execution $execution, $signal = NULL, array $variables = [])
+	public $delegation;
+	
+	public function __construct(Item $source, Execution $execution, $signal = NULL, array $variables = [], array $delegation = [])
 	{
 		parent::__construct($source, $execution);
 		
 		$this->signal = $signal;
 		$this->variables = $variables;
+		$this->delegation = $delegation;
 	}
 }

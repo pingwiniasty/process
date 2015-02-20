@@ -94,7 +94,8 @@ interface EngineInterface extends LoggerInterface
 	 * @param Execution $execution
 	 * @param string $signal
 	 * @param array $variables
+	 * @param array $delegation
 	 * @return CommandInterface
 	 */
-	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = []);
+	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = [], array $delegation = []);
 }

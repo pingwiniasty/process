@@ -31,7 +31,7 @@ class WaitStateBehavior implements SignalableBehaviorInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function signal(Execution $execution, $signal, array $variables = [])
+	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
 	{
 		foreach($variables as $k => $v)
 		{

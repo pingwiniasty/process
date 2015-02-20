@@ -25,8 +25,6 @@ use KoolKode\Util\UUID;
  */
 class Execution
 {
-	const KEY_EXECUTION = '@execution';
-	
 	/**
 	 * State: No state set.
 	 * 
@@ -437,7 +435,7 @@ class Execution
 		{
 			if($this->isWaiting())
 			{
-				$this->signal(NULL, [self::KEY_EXECUTION => $execution]);
+				$this->signal(NULL, [], ['executionId' => $execution->getId()]);
 			}
 			else
 			{
@@ -1018,11 +1016,12 @@ class Execution
 	 * Signal the execution in order to continue from a wait state.
 	 * 
 	 * @param string $signal The name of the signal or NULL when no such name exists.
-	 * @param array<string, mixed> $variables Execution variables to be set.
+	 * @param array<string, mixed> $variables Signal data.
+	 * @param array<string, mixed> $delegation Signal delegation data.
 	 * 
 	 * @throws \RuntimeException When the execution is terminated or not within a wait state.
 	 */
-	public function signal($signal = NULL, array $variables = [])
+	public function signal($signal = NULL, array $variables = [], array $delegation = [])
 	{
 		if($this->isTerminated())
 		{
@@ -1034,7 +1033,7 @@ class Execution
 			throw new \RuntimeException(sprintf('%s is not in a wait state', $this));
 		}
 		
-		$this->engine->pushCommand($this->engine->createSignalExecutionCommand($this, $signal, $variables));
+		$this->engine->pushCommand($this->engine->createSignalExecutionCommand($this, $signal, $variables, $delegation));
 	}
 	
 	/**

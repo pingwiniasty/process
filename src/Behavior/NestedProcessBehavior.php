@@ -64,9 +64,9 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 		$sub->execute(array_shift($nodes));
 	}
 	
-	public function signal(Execution $execution, $signal, array $variables = [])
+	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
 	{
-		$sub = $variables[Execution::KEY_EXECUTION];
+		$sub = $execution->getEngine()->findExecution($delegation['executionId']);
 		
 		if(!$sub instanceof Execution)
 		{

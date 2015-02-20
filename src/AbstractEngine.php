@@ -352,9 +352,9 @@ abstract class AbstractEngine implements EngineInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = [])
+	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = [], array $delegation = [])
 	{
-		return new SignalExecutionCommand($execution, $signal, $variables);
+		return new SignalExecutionCommand($execution, $signal, $variables, $delegation);
 	}
 	
 	/**

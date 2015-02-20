@@ -55,12 +55,14 @@ class TestEngine extends AbstractEngine
 	 * 
 	 * @param Execution $execution
 	 * @param string $signal
+	 * @param array $variables
+	 * @param array $delegation
 	 */
-	public function signal(Execution $execution, $signal = NULL, array $variables = [])
+	public function signal(Execution $execution, $signal = NULL, array $variables = [], array $delegation = [])
 	{
 		if($execution->isWaiting())
 		{
-			$execution->signal($signal, $variables);
+			$execution->signal($signal, $variables, $delegation);
 		}
 	}
 	
@@ -70,14 +72,16 @@ class TestEngine extends AbstractEngine
 	 * @param Execution $execution Concurrent root execution.
 	 * @param Node $node Constrain signalign to executions within this node.
 	 * @param string $signal The signal to send.
+	 * @param array $variables
+	 * @param array $delegation
 	 */
-	public function signalAll(Execution $execution, Node $node = NULL, $signal = NULL, array $variables = [])
+	public function signalAll(Execution $execution, Node $node = NULL, $signal = NULL, array $variables = [], array $delegation = [])
 	{
 		foreach($this->collectExecutions($execution, $node) as $exec)
 		{
 			if($exec->isWaiting())
 			{
-				$exec->signal($signal, $variables);
+				$exec->signal($signal, $variables, $delegation);
 			}
 		}
 	}

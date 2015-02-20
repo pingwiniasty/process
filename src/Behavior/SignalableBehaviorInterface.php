@@ -25,7 +25,8 @@ interface SignalableBehaviorInterface extends BehaviorInterface
 	 * 
 	 * @param Execution $execution
 	 * @param string $signal Name of the signal or NULL when no name is given.
-	 * @param array<string, mixed> $variables
+	 * @param array<string, mixed> $variables Signal variables.
+	 * @param array<string, mixed> $delegation Signal delegation data.
 	 */
-	public function signal(Execution $execution, $signal, array $variables = []);
+	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = []);
 }
