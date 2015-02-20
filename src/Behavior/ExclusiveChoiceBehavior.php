@@ -50,6 +50,12 @@ class ExclusiveChoiceBehavior implements BehaviorInterface
 			return $execution->take($this->defaultTransition);
 		}
 		
-		$execution->terminate();
+		$message = sprintf(
+			'Execution %s about to get stuck in exclusive choice within node "%s"',
+			$execution->getId(),
+			$execution->getNode()->getId()
+		);
+		
+		throw new StuckException($message);
 	}
 }

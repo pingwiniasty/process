@@ -109,4 +109,69 @@ class ForkInclusiveTest extends ProcessTestCase
 		$this->processEngine->signalAll($process);
 		$this->assertTrue($process->isTerminated());
 	}
+	
+	public function testJoinParallel()
+	{
+		$builder = new ProcessBuilder();
+		
+		$builder->startNode('s1');
+		$builder->transition('t1', 's1', 'j1');
+		$builder->transition('t2', 's1', 'w1');
+		$builder->transition('tx', 's1', 'wx');
+		
+		// Additional wait state that is not reachable by the inclusive choice node.
+		$builder->node('wx')->behavior(new WaitStateBehavior());
+		
+		$builder->node('w1')->behavior(new WaitStateBehavior());
+		$builder->transition('t3', 'w1', 'j1');
+		
+		$builder->node('j1')->behavior(new InclusiveChoiceBehavior());
+		$builder->transition('t4', 'j1', 'w2');
+		
+		$builder->node('w2')->behavior(new WaitStateBehavior());
+		
+		$process = $this->processEngine->startProcess($builder->build());
+		
+		$this->assertEquals(2, $this->processEngine->countWaiting($process));
+		
+		$this->processEngine->signal($this->processEngine->findWaitingExecutions($process)[0]);
+		$this->assertEquals(2, $this->processEngine->countWaiting($process));
+		
+		foreach($this->processEngine->findWaitingExecutions($process) as $exec)
+		{
+			if($exec->getNode()->getId() === 'wx')
+			{
+				$this->processEngine->signal($exec);
+			}
+		}
+		
+		$this->assertEquals(1, $this->processEngine->countWaiting($process));
+		
+		foreach($this->processEngine->findWaitingExecutions($process) as $exec)
+		{
+			$this->assertEquals('w2', $exec->getNode()->getId());
+		}
+		
+		$this->processEngine->signal($exec);
+		
+		$this->assertEquals(0, $this->processEngine->countWaiting($process));
+	}
+	
+	/**
+	 * @expectedException \KoolKode\Process\Behavior\StuckException
+	 */
+	public function testGetStuck()
+	{
+		$builder = new ProcessBuilder();
+		
+		$builder->startNode('s');
+		$builder->transition('t1', 's', 'c');
+		
+		$builder->node('c')->behavior(new InclusiveChoiceBehavior());
+		$builder->transition('t2', 'c', 'e')->trigger(new ExpressionTrigger($this->parseExp('#{ false }')));
+		
+		$builder->passNode('e');
+		
+		$this->processEngine->startProcess($builder->build());
+	}
 }

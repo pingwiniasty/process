@@ -30,18 +30,25 @@ class SyncBehavior implements BehaviorInterface
 
 		$numberExecutions = count($execution->getProcessModel()->findIncomingTransitions($execution->getNode()->getId()));
 		
-		if($numberExecutions == 1)
+		// Collect recycled executions, initialize with current execution:
+		$recycle = [$execution->getTransition()->getId() => $execution];
+		
+		foreach($execution->findInactiveConcurrentExecutions($execution->getNode()) as $concurrent)
 		{
-			return $execution->takeAll();
+			// Collect at most 1 execution per incoming transition.
+			$transId = $concurrent->getTransition()->getId();
+				
+			if(empty($recycle[$transId]))
+			{
+				$recycle[$transId] = $concurrent;
+			}
 		}
 		
-		$join = $execution->findInactiveConcurrentExecutions($execution->getNode());
-		
-		if($numberExecutions != count($join))
+		if(count($recycle) !== $numberExecutions)
 		{
 			return;
 		}
 		
-		return $execution->takeAll(NULL, $join);
+		return $execution->takeAll(NULL, $recycle);
 	}
 }

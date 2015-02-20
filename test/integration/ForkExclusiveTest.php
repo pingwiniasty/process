@@ -77,4 +77,22 @@ class ForkExclusiveTest extends ProcessTestCase
 		$this->assertTrue($process->isTerminated());
 		$this->assertEquals($expected, $sum);
 	}
+	
+	/**
+	 * @expectedException \KoolKode\Process\Behavior\StuckException
+	 */
+	public function testGetStuck()
+	{
+		$builder = new ProcessBuilder();
+	
+		$builder->startNode('s');
+		$builder->transition('t1', 's', 'c');
+	
+		$builder->node('c')->behavior(new ExclusiveChoiceBehavior());
+		$builder->transition('t2', 'c', 'e')->trigger(new ExpressionTrigger($this->parseExp('#{ false }')));
+	
+		$builder->passNode('e');
+	
+		$this->processEngine->startProcess($builder->build());
+	}
 }

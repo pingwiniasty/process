@@ -77,7 +77,13 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 			return $execution->takeAll([$this->defaultTransition], $recycle);
 		}
 		
-		$execution->terminate();
+		$message = sprintf(
+			'Execution %s about to get stuck in inclusive choice within node "%s"',
+			$execution->getId(),
+			$execution->getNode()->getId()
+		);
+		
+		throw new StuckException($message);
 	}
 	
 	protected function hasConcurrentActiveExecution(Execution $execution)
@@ -117,21 +123,13 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 		$out = $model->findOutgoingTransitions($source->getId());
 		$visited->attach($source);
 		
-		if(empty($out))
-		{	
-			return false;
-		}
-		
 		foreach($out as $transition)
 		{
 			$tmp = $model->findNode($transition->getTo());
 			
-			if(!$visited->contains($tmp))
+			if(!$visited->contains($tmp) && $this->isReachable($tmp, $target, $execution, $visited))
 			{
-				if($this->isReachable($tmp, $target, $execution, $visited))
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 		
