@@ -61,7 +61,7 @@ class InclusiveChoiceBehavior implements BehaviorInterface
 			// Collect at most 1 execution per incoming transition.
 			$transId = $concurrent->getTransition()->getId();
 			
-			if(empty($recycle[$transId]))
+			if(empty($recycle[$transId]) || $concurrent->getTimestamp() < $recycle[$transId]->getTimestamp())
 			{
 				$recycle[$transId] = $concurrent;
 			}
