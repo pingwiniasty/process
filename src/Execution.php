@@ -379,6 +379,11 @@ class Execution
 			$execution->terminate(false);
 		}
 		
+		if($triggerExecution)
+		{
+			$this->timestamp = microtime(true);
+		}
+		
 		if($this->parentExecution === NULL)
 		{
 			$this->engine->notify(new EndProcessEvent($this->node, $this));
@@ -466,6 +471,21 @@ class Execution
 		$this->markModified();
 	}
 	
+	/**
+	 * Get the last activity timestamp (including milliseconds).
+	 * 
+	 * @return float
+	 */
+	public function getTimestamp()
+	{
+		return $this->timestamp;
+	}
+	
+	/**
+	 * Set the last activity timestamp (including milliseconds).
+	 * 
+	 * @param float $timestamp
+	 */
 	public function setTimestamp($timestamp)
 	{
 		$this->timestamp = (float)$timestamp;

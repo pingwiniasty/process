@@ -81,6 +81,7 @@ class TakeTransitionCommand extends AbstractCommand
 				
 				$parent->setNode($execution->getNode());
 				$parent->setTransition($execution->getTransition());
+				$parent->setTimestamp(microtime(true));
 				$parent->setActive(true);
 				$parent->markModified(true);
 				
@@ -104,6 +105,7 @@ class TakeTransitionCommand extends AbstractCommand
 				$execution->terminate(false);
 				
 				$parent = $execution->getParentExecution();
+				$parent->setTimestamp(microtime(true));
 				$parent->setActive(true);
 				$parent->terminate();
 			}
