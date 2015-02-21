@@ -89,7 +89,7 @@ class TakeTransitionCommand extends AbstractCommand
 					'root' => (string)$parent
 				]);
 
-				$execution->terminate();
+				$execution->terminate(false);
 				
 				return $parent->take($this->transitionId);
 			}
@@ -101,8 +101,9 @@ class TakeTransitionCommand extends AbstractCommand
 		{
 			if($execution->isConcurrent() && 0 == count($execution->findConcurrentExecutions()))
 			{
-				$parent = $execution->getParentExecution();
+				$execution->terminate(false);
 				
+				$parent = $execution->getParentExecution();
 				$parent->setActive(true);
 				$parent->terminate();
 			}

@@ -1115,7 +1115,7 @@ class Execution
 						{
 							if($rec !== $this)
 							{
-								$rec->terminate();
+								$rec->terminate(false);
 							}
 						}
 					}
@@ -1134,7 +1134,7 @@ class Execution
 						'root' => (string)$this->parentExecution
 					]);
 						
-					$this->terminate();
+					$this->terminate(false);
 					
 					return $this->parentExecution->takeAll($transitions);
 				}
@@ -1166,13 +1166,15 @@ class Execution
 				{
 					if($rec !== $this)
 					{
-						$rec->terminate();
+						$rec->terminate(false);
 					}
 				}
 					
 				if($this->isConcurrent() && 0 == count($this->findConcurrentExecutions()))
 				{
 					$this->parentExecution->setActive(true);
+					
+					$this->terminate(false);
 			
 					return $this->parentExecution->terminate();
 				}
@@ -1206,7 +1208,7 @@ class Execution
 				{
 					if(!$rec->isTerminated())
 					{
-						$rec->terminate();
+						$rec->terminate(false);
 						
 						$terminated++;
 					}
@@ -1255,7 +1257,7 @@ class Execution
 		
 			foreach($recycle as $rec)
 			{
-				$rec->terminate();
+				$rec->terminate(false);
 			}
 		
 			foreach($outgoing as $out)
