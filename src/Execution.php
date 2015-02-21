@@ -1113,10 +1113,11 @@ class Execution
 					{
 						foreach($recycle as $rec)
 						{
-							$rec->terminate();
+							if($rec !== $this)
+							{
+								$rec->terminate();
+							}
 						}
-
-						$this->terminate();
 					}
 					
 					foreach($this->findChildExecutions() as $child)
@@ -1133,7 +1134,7 @@ class Execution
 						'root' => (string)$this->parentExecution
 					]);
 						
-					$this->markModified(true);
+					$this->terminate();
 					
 					return $this->parentExecution->takeAll($transitions);
 				}
@@ -1163,10 +1164,11 @@ class Execution
 			{
 				foreach($recycle as $rec)
 				{
-					$rec->terminate();
+					if($rec !== $this)
+					{
+						$rec->terminate();
+					}
 				}
-				
-				$this->terminate();
 					
 				if($this->isConcurrent() && 0 == count($this->findConcurrentExecutions()))
 				{
@@ -1175,7 +1177,7 @@ class Execution
 					return $this->parentExecution->terminate();
 				}
 				
-				$this->markModified();
+				$this->terminate();
 				
 				return;
 			}

@@ -99,14 +99,16 @@ class TakeTransitionCommand extends AbstractCommand
 
 		if(!$trans->isEnabled($execution))
 		{
-			$execution->terminate();
-		
 			if($execution->isConcurrent() && 0 == count($execution->findConcurrentExecutions()))
 			{
 				$parent = $execution->getParentExecution();
 				
 				$parent->setActive(true);
 				$parent->terminate();
+			}
+			else
+			{
+				$execution->terminate();
 			}
 		
 			return;
