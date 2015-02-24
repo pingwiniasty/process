@@ -598,13 +598,15 @@ class Execution
 	 * Create a nested execution as child execution.
 	 * 
 	 * @param ProcessModel $model
+	 * @param Node $startNode
 	 * @param boolean $isScope
 	 * @param boolean $isScopeRoot
 	 * @return Execution
 	 */
-	public function createNestedExecution(ProcessModel $model, $isScope = true, $isScopeRoot = false)
+	public function createNestedExecution(ProcessModel $model, Node $startNode, $isScope = true, $isScopeRoot = false)
 	{
 		$execution = new static(UUID::createRandom(), $this->engine, $model, $this);
+		$execution->setNode($startNode);
 		$execution->setState(self::STATE_SCOPE, $isScope);
 		$execution->setState(self::STATE_SCOPE_ROOT, $isScopeRoot);
 		

@@ -49,7 +49,9 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 			throw new \RuntimeException(sprintf('No single start node found in process "%s"', $this->process->getTitle()));
 		}
 		
-		$sub = $execution->createNestedExecution($this->process, true, $this->isolateScope);
+		$startNode = array_shift($nodes);
+		
+		$sub = $execution->createNestedExecution($this->process, $startNode, true, $this->isolateScope);
 		
 		foreach($this->inputs as $target => $source)
 		{
@@ -61,7 +63,7 @@ class NestedProcessBehavior implements SignalableBehaviorInterface
 		
 		$execution->waitForSignal();
 		
-		$sub->execute(array_shift($nodes));
+		$sub->execute($startNode);
 	}
 	
 	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
