@@ -90,9 +90,9 @@ class ProcessModel
 	{
 		$id = $item->getId();
 		
-		if(isset($id))
+		if(isset($this->items[$id]))
 		{
-			throw new \RuntimeException('Duplicate item ID: "%s"', $id);
+			throw new \RuntimeException(sprintf('Duplicate item ID: "%s"', $id));
 		}
 		
 		$this->items[$id] = $item;
