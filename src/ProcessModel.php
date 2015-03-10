@@ -86,6 +86,20 @@ class ProcessModel
 		return $this->items[$id];
 	}
 	
+	public function addItem(Item $item)
+	{
+		$id = $item->getId();
+		
+		if(isset($id))
+		{
+			throw new \RuntimeException('Duplicate item ID: "%s"', $id);
+		}
+		
+		$this->items[$id] = $item;
+		
+		return $this;
+	}
+	
 	public function findNodes()
 	{
 		return array_values(array_filter($this->items, function(Item $item) {

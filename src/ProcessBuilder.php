@@ -18,7 +18,7 @@ use KoolKode\Process\Behavior\PassBehavior;
  * 
  * @author Martin Schröder
  */
-class ProcessBuilder
+class ProcessBuilder implements \Countable, \IteratorAggregate
 {
 	protected $title;
 	
@@ -34,6 +34,16 @@ class ProcessBuilder
 		$this->title = trim($title);
 	}
 	
+	public function count()
+	{
+		return count($this->items);
+	}
+	
+	public function getIterator()
+	{
+		return new \ArrayIterator($this->items);
+	}
+	
 	/**
 	 * Add a new node to the process.
 	 * 
@@ -42,6 +52,11 @@ class ProcessBuilder
 	 */
 	public function node($id)
 	{
+		if(isset($this->items[$id]))
+		{
+			throw new \RuntimeException(sprintf('Duplicate item ID: "%s"', $id));
+		}
+		
 		return $this->items[$id] = new Node($id);
 	}
 	
@@ -75,6 +90,11 @@ class ProcessBuilder
 	 */
 	public function transition($id, $from, $to)
 	{
+		if(isset($this->items[$id]))
+		{
+			throw new \RuntimeException(sprintf('Duplicate item ID: "%s"', $id));
+		}
+		
 		$transition = $this->items[$id] = new Transition($id, $from);
 		$transition->to($to);
 		
@@ -102,6 +122,11 @@ class ProcessBuilder
 	{
 		foreach($builder->items as $id => $item)
 		{
+			if(isset($this->items[$id]))
+			{
+				throw new \RuntimeException(sprintf('Duplicate item ID: "%s"', $id));
+			}
+			
 			$this->items[$id] = $item;
 		}
 		
