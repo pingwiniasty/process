@@ -20,29 +20,29 @@ use KoolKode\Process\Execution;
  */
 class WaitStateBehavior implements SignalableBehaviorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(Execution $execution)
-	{
-		$execution->waitForSignal();
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
-	{
-		foreach($variables as $k => $v)
-		{
-			$execution->setVariable($k, $v);
-		}
-		
-		if($signal === NULL)
-		{
-			return $execution->takeAll(NULL, [$execution]);
-		}
-		
-		return $execution->take($signal);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(Execution $execution)
+    {
+        $execution->waitForSignal();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
+    {
+        foreach ($variables as $k => $v) {
+            $execution->setVariable($k, $v);
+        }
+        
+        if ($signal === null) {
+            return $execution->takeAll(null, [
+                $execution
+            ]);
+        }
+        
+        return $execution->take($signal);
+    }
 }

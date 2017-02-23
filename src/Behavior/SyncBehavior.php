@@ -21,34 +21,33 @@ use KoolKode\Process\Execution;
  */
 class SyncBehavior implements BehaviorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(Execution $execution)
-	{
-		$execution->setActive(false);
-
-		$numberExecutions = count($execution->getProcessModel()->findIncomingTransitions($execution->getNode()->getId()));
-		
-		// Collect recycled executions, initialize with current execution:
-		$recycle = [$execution->getTransition()->getId() => $execution];
-		
-		foreach($execution->findInactiveConcurrentExecutions($execution->getNode()) as $concurrent)
-		{
-			// Collect at most 1 execution per incoming transition.
-			$transId = $concurrent->getTransition()->getId();
-				
-			if(empty($recycle[$transId]) || $concurrent->getTimestamp() < $recycle[$transId]->getTimestamp())
-			{
-				$recycle[$transId] = $concurrent;
-			}
-		}
-		
-		if(count($recycle) !== $numberExecutions)
-		{
-			return;
-		}
-		
-		return $execution->takeAll(NULL, $recycle);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(Execution $execution)
+    {
+        $execution->setActive(false);
+        
+        $numberExecutions = count($execution->getProcessModel()->findIncomingTransitions($execution->getNode()->getId()));
+        
+        // Collect recycled executions, initialize with current execution:
+        $recycle = [
+            $execution->getTransition()->getId() => $execution
+        ];
+        
+        foreach ($execution->findInactiveConcurrentExecutions($execution->getNode()) as $concurrent) {
+            // Collect at most 1 execution per incoming transition.
+            $transId = $concurrent->getTransition()->getId();
+            
+            if (empty($recycle[$transId]) || $concurrent->getTimestamp() < $recycle[$transId]->getTimestamp()) {
+                $recycle[$transId] = $concurrent;
+            }
+        }
+        
+        if (count($recycle) !== $numberExecutions) {
+            return;
+        }
+        
+        return $execution->takeAll(null, $recycle);
+    }
 }

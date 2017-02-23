@@ -20,42 +20,34 @@ use KoolKode\Process\Execution;
  */
 class ExclusiveChoiceBehavior implements BehaviorInterface
 {
-	protected $defaultTransition;
-	
-	public function __construct($defaultTransition = NULL)
-	{
-		$this->defaultTransition = ($defaultTransition === NULL) ? NULL : (string)$defaultTransition;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(Execution $execution)
-	{
-		foreach($execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId()) as $trans)
-		{
-			if($trans->getId() === $this->defaultTransition)
-			{
-				continue;
-			}
-			
-			if($trans->isEnabled($execution))
-			{
-				return $execution->take($trans);
-			}
-		}
-		
-		if($this->defaultTransition !== NULL)
-		{
-			return $execution->take($this->defaultTransition);
-		}
-		
-		$message = sprintf(
-			'Execution %s about to get stuck in exclusive choice within node "%s"',
-			$execution->getId(),
-			$execution->getNode()->getId()
-		);
-		
-		throw new StuckException($message);
-	}
+    protected $defaultTransition;
+
+    public function __construct($defaultTransition = null)
+    {
+        $this->defaultTransition = ($defaultTransition === null) ? null : (string) $defaultTransition;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(Execution $execution)
+    {
+        foreach ($execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId()) as $trans) {
+            if ($trans->getId() === $this->defaultTransition) {
+                continue;
+            }
+            
+            if ($trans->isEnabled($execution)) {
+                return $execution->take($trans);
+            }
+        }
+        
+        if ($this->defaultTransition !== null) {
+            return $execution->take($this->defaultTransition);
+        }
+        
+        $message = sprintf('Execution %s about to get stuck in exclusive choice within node "%s"', $execution->getId(), $execution->getNode()->getId());
+        
+        throw new StuckException($message);
+    }
 }

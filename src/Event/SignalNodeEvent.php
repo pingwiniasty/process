@@ -2,12 +2,12 @@
 
 /*
  * This file is part of KoolKode Process.
-*
-* (c) Martin Schröder <m.schroeder2007@gmail.com>
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+ *
+ * (c) Martin Schröder <m.schroeder2007@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace KoolKode\Process\Event;
 
@@ -21,18 +21,18 @@ use KoolKode\Process\Item;
  */
 class SignalNodeEvent extends AbstractProcessEvent
 {
-	public $signal;
-	
-	public $variables;
-	
-	public $delegation;
-	
-	public function __construct(Item $source, Execution $execution, $signal = NULL, array $variables = [], array $delegation = [])
-	{
-		parent::__construct($source, $execution);
-		
-		$this->signal = $signal;
-		$this->variables = $variables;
-		$this->delegation = $delegation;
-	}
+    public $signal;
+
+    public $variables;
+
+    public $delegation;
+
+    public function __construct(Item $source, Execution $execution, $signal = null, array $variables = [], array $delegation = [])
+    {
+        parent::__construct($source, $execution);
+        
+        $this->signal = $signal;
+        $this->variables = $variables;
+        $this->delegation = $delegation;
+    }
 }

@@ -21,68 +21,64 @@ use KoolKode\Process\ProcessModel;
  */
 class NestedProcessBehavior implements SignalableBehaviorInterface
 {
-	protected $process;
-	
-	protected $isolateScope;
-	
-	protected $inputs;
-	
-	protected $outputs;
-	
-	public function __construct(ProcessModel $process, $isolateScope = true, array $inputs = [], array $outputs = [])
-	{
-		$this->process = $process;
-		$this->isolateScope = $isolateScope ? true : false;
-		$this->inputs = $inputs;
-		$this->outputs = $outputs;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(Execution $execution)
-	{
-		$nodes = $this->process->findInitialNodes();
-		
-		if(count($nodes) !== 1)
-		{
-			throw new \RuntimeException(sprintf('No single start node found in process "%s"', $this->process->getTitle()));
-		}
-		
-		$startNode = array_shift($nodes);
-		
-		$sub = $execution->createNestedExecution($this->process, $startNode, true, $this->isolateScope);
-		
-		foreach($this->inputs as $target => $source)
-		{
-			if($execution->hasVariable($source))
-			{
-				$sub->setVariable($target, $execution->getVariable($source));
-			}
-		}
-		
-		$execution->waitForSignal();
-		
-		$sub->execute($startNode);
-	}
-	
-	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
-	{
-		$sub = $execution->getEngine()->findExecution($delegation['executionId']);
-		
-		if(!$sub instanceof Execution)
-		{
-			throw new \RuntimeException('Missing reference to nested execution');
-		}
-		
-		foreach($this->outputs as $target => $source)
-		{
-			if($sub->hasVariable($source))
-			{
-				$execution->setVariable($target, $sub->getVariable($source));
-			}
-		}
-		
-		$execution->takeAll(NULL, [$execution]);
-	}
+    protected $process;
+
+    protected $isolateScope;
+
+    protected $inputs;
+
+    protected $outputs;
+
+    public function __construct(ProcessModel $process, $isolateScope = true, array $inputs = [], array $outputs = [])
+    {
+        $this->process = $process;
+        $this->isolateScope = $isolateScope ? true : false;
+        $this->inputs = $inputs;
+        $this->outputs = $outputs;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(Execution $execution)
+    {
+        $nodes = $this->process->findInitialNodes();
+        
+        if (count($nodes) !== 1) {
+            throw new \RuntimeException(sprintf('No single start node found in process "%s"', $this->process->getTitle()));
+        }
+        
+        $startNode = array_shift($nodes);
+        
+        $sub = $execution->createNestedExecution($this->process, $startNode, true, $this->isolateScope);
+        
+        foreach ($this->inputs as $target => $source) {
+            if ($execution->hasVariable($source)) {
+                $sub->setVariable($target, $execution->getVariable($source));
+            }
+        }
+        
+        $execution->waitForSignal();
+        
+        $sub->execute($startNode);
+    }
+
+    public function signal(Execution $execution, $signal, array $variables = [], array $delegation = [])
+    {
+        $sub = $execution->getEngine()->findExecution($delegation['executionId']);
+        
+        if (!$sub instanceof Execution) {
+            throw new \RuntimeException('Missing reference to nested execution');
+        }
+        
+        foreach ($this->outputs as $target => $source) {
+            if ($sub->hasVariable($source)) {
+                $execution->setVariable($target, $sub->getVariable($source));
+            }
+        }
+        
+        $execution->takeAll(null, [
+            $execution
+        ]);
+    }
 }

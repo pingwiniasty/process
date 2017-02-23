@@ -20,10 +20,10 @@ use KoolKode\Process\Execution;
  */
 interface BehaviorInterface
 {
-	/**
-	 * Execute the connected behavior in the context of the given execution.
-	 * 
-	 * @param Execution $execution
-	 */
-	public function execute(Execution $execution);
+    /**
+     * Execute the connected behavior in the context of the given execution.
+     * 
+     * @param Execution $execution
+     */
+    public function execute(Execution $execution);
 }

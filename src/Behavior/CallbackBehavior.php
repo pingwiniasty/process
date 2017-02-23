@@ -20,37 +20,39 @@ use KoolKode\Process\Execution;
  */
 class CallbackBehavior implements BehaviorInterface, \Serializable
 {
-	protected $callback;
-	
-	public function __construct(callable $callback)
-	{
-		$this->callback = $callback;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 * 
-	 * @codeCoverageIgnore
-	 */
-	public function serialize()
-	{
-		throw new \RuntimeException('Callback behaviors are for testing only and cannot be serialized');
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 * 
-	 * @codeCoverageIgnore
-	 */
-	public function unserialize($serialized) { }
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(Execution $execution)
-	{
-		$trans = call_user_func($this->callback, $execution);
-		
-		return $execution->takeAll(($trans === NULL) ? $trans : (array)$trans, [$execution]);
-	}
+    protected $callback;
+
+    public function __construct(callable $callback)
+    {
+        $this->callback = $callback;
+    }
+
+    /**
+     * {@inheritdoc}
+     * 
+     * @codeCoverageIgnore
+     */
+    public function serialize()
+    {
+        throw new \RuntimeException('Callback behaviors are for testing only and cannot be serialized');
+    }
+
+    /**
+     * {@inheritdoc}
+     * 
+     * @codeCoverageIgnore
+     */
+    public function unserialize($serialized) { }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(Execution $execution)
+    {
+        $trans = call_user_func($this->callback, $execution);
+        
+        return $execution->takeAll(($trans === null) ? $trans : (array) $trans, [
+            $execution
+        ]);
+    }
 }

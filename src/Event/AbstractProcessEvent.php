@@ -2,12 +2,12 @@
 
 /*
  * This file is part of KoolKode Process.
-*
-* (c) Martin Schröder <m.schroeder2007@gmail.com>
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+ *
+ * (c) Martin Schröder <m.schroeder2007@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace KoolKode\Process\Event;
 
@@ -21,13 +21,13 @@ use KoolKode\Process\Item;
  */
 abstract class AbstractProcessEvent
 {
-	public $source;
-	
-	public $execution;
-	
-	public function __construct(Item $source, Execution $execution)
-	{
-		$this->source = $source;
-		$this->execution = $execution;
-	}
+    public $source;
+
+    public $execution;
+
+    public function __construct(Item $source, Execution $execution)
+    {
+        $this->source = $source;
+        $this->execution = $execution;
+    }
 }

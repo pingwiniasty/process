@@ -2,12 +2,12 @@
 
 /*
  * This file is part of KoolKode Process.
-*
-* (c) Martin Schröder <m.schroeder2007@gmail.com>
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+ *
+ * (c) Martin Schröder <m.schroeder2007@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace KoolKode\Process;
 
@@ -23,79 +23,79 @@ use Psr\Log\LoggerInterface;
  */
 interface EngineInterface extends LoggerInterface
 {
-	/**
-	 * Notify listeners of a process event.
-	 * 
-	 * @param object $event
-	 */
-	public function notify($event);
-	
-	/**
-	 * Get access to the expression context factory being used by the process engine.
-	 * 
-	 * @return ExpressionContextFactoryInterface
-	 */
-	public function getExpressionContextFactory();
-	
-	/**
-	 * Queue up a command to be executed by the process engine.
-	 * 
-	 * @param CommandInterface $command
-	 */
-	public function pushCommand(CommandInterface $command);
-	
-	/**
-	 * Have the process engine execute the given command and return the result.
-	 * 
-	 * The engine will execute all pushed commands with higher priority before the target command. The target command
-	 * will be executed in it's own isolated scope.
-	 * 
-	 * @param CommandInterface $command
-	 * @return mixed
-	 */
-	public function executeCommand(CommandInterface $command);
-	
-	/**
-	 * Get an execution by ID.
-	 * 
-	 * @param UUID $id
-	 * @return Execution
-	 */
-	public function findExecution(UUID $id);
-	
-	/**
-	 * Register an execution with the process engine, very helpful in implementing persistence.
-	 * 
-	 * @param Execution $execution
-	 */
-	public function registerExecution(Execution $execution);
-	
-	/**
-	 * Create a command that will execute a node in the context of the given execution.
-	 * 
-	 * @param Execution $execution
-	 * @param Node $node
-	 * @return CommandInterface
-	 */
-	public function createExecuteNodeCommand(Execution $execution, Node $node);
-	
-	/**
-	 * Create a command that will move an execution using a single transition.
-	 * 
-	 * @param Execution $execution
-	 * @param Transition $transition
-	 * @return CommandInterface
-	 */
-	public function createTakeTransitionCommand(Execution $execution, Transition $transition = NULL);
-	
-	/**
-	 * Create a command that will signal an execution passing a signal and optional data.
-	 * 
-	 * @param Execution $execution
-	 * @param string $signal
-	 * @param array $variables
-	 * @param array $delegation
-	 * @return CommandInterface
-	 */
-	public function createSignalExecutionCommand(Execution $execution, $signal = NULL, array $variables = [], array $delegation = []);
+    /**
+     * Notify listeners of a process event.
+     * 
+     * @param object $event
+     */
+    public function notify($event);
+
+    /**
+     * Get access to the expression context factory being used by the process engine.
+     * 
+     * @return ExpressionContextFactoryInterface
+     */
+    public function getExpressionContextFactory();
+
+    /**
+     * Queue up a command to be executed by the process engine.
+     * 
+     * @param CommandInterface $command
+     */
+    public function pushCommand(CommandInterface $command);
+
+    /**
+     * Have the process engine execute the given command and return the result.
+     * 
+     * The engine will execute all pushed commands with higher priority before the target command. The target command
+     * will be executed in it's own isolated scope.
+     * 
+     * @param CommandInterface $command
+     * @return mixed
+     */
+    public function executeCommand(CommandInterface $command);
+
+    /**
+     * Get an execution by ID.
+     * 
+     * @param UUID $id
+     * @return Execution
+     */
+    public function findExecution(UUID $id);
+
+    /**
+     * Register an execution with the process engine, very helpful in implementing persistence.
+     * 
+     * @param Execution $execution
+     */
+    public function registerExecution(Execution $execution);
+
+    /**
+     * Create a command that will execute a node in the context of the given execution.
+     * 
+     * @param Execution $execution
+     * @param Node $node
+     * @return CommandInterface
+     */
+    public function createExecuteNodeCommand(Execution $execution, Node $node);
+
+    /**
+     * Create a command that will move an execution using a single transition.
+     * 
+     * @param Execution $execution
+     * @param Transition $transition
+     * @return CommandInterface
+     */
+    public function createTakeTransitionCommand(Execution $execution, Transition $transition = null);
+
+    /**
+     * Create a command that will signal an execution passing a signal and optional data.
+     * 
+     * @param Execution $execution
+     * @param string $signal
+     * @param array $variables
+     * @param array $delegation
+     * @return CommandInterface
+     */
+    public function createSignalExecutionCommand(Execution $execution, $signal = null, array $variables = [], array $delegation = []);
 }

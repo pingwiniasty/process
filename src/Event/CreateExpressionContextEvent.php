@@ -20,10 +20,10 @@ use KoolKode\Process\ExecutionAccess;
  */
 class CreateExpressionContextEvent
 {
-	public $access;
-	
-	public function __construct(ExecutionAccess $access)
-	{
-		$this->access = $access;
-	}
+    public $access;
+
+    public function __construct(ExecutionAccess $access)
+    {
+        $this->access = $access;
+    }
 }

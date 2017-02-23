@@ -25,74 +25,71 @@ use KoolKode\Util\UUID;
  */
 class StartProcessCommand extends AbstractCommand
 {
-	protected $model;
-	
-	protected $startNode;
-	
-	protected $variables;
-	
-	public function __construct(ProcessModel $model, Node $startNode = NULL, array $variables = [])
-	{
-		$this->model = $model;
-		$this->variables = $variables;
-		
-		if($startNode === NULL)
-		{
-			$initial = $model->findInitialNodes();
-			
-			if(count($initial) != 1)
-			{
-				throw new \RuntimeException(sprintf('Process "%s" does not declare exactly 1 start node', $model->getTitle()));
-			}
-			
-			$this->startNode = array_shift($initial);
-		}
-		else
-		{
-			$this->startNode = $startNode;
-		}
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 * 
-	 * @codeCoverageIgnore
-	 */
-	public function isSerializable()
-	{
-		return false;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(EngineInterface $engine)
-	{
-		$engine->debug('Starting process {process} at {node}', [
-			'process' => (string)$this->model->getId(),
-			'node' => (string)$this->startNode
-		]);
-		
-		$process = $this->createRootExecution($engine);
-		$engine->debug('Created {execution}', [
-			'execution' => (string)$process
-		]);
-		
-		foreach($this->variables as $k => $v)
-		{
-			$process->setVariable($k, $v);
-		}
-		
-		$engine->registerExecution($process);
-		$engine->notify(new StartProcessEvent($this->startNode, $process));
-		
-		$process->execute($this->startNode);
-		
-		return $process;
-	}
-	
-	protected function createRootExecution(EngineInterface $engine)
-	{
-		return new Execution(UUID::createRandom(), $engine, $this->model);
-	}
+    protected $model;
+
+    protected $startNode;
+
+    protected $variables;
+
+    public function __construct(ProcessModel $model, Node $startNode = null, array $variables = [])
+    {
+        $this->model = $model;
+        $this->variables = $variables;
+        
+        if ($startNode === null) {
+            $initial = $model->findInitialNodes();
+            
+            if (count($initial) != 1) {
+                throw new \RuntimeException(sprintf('Process "%s" does not declare exactly 1 start node', $model->getTitle()));
+            }
+            
+            $this->startNode = array_shift($initial);
+        } else {
+            $this->startNode = $startNode;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * 
+     * @codeCoverageIgnore
+     */
+    public function isSerializable()
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(EngineInterface $engine)
+    {
+        $engine->debug('Starting process {process} at {node}', [
+            'process' => (string) $this->model->getId(),
+            'node' => (string) $this->startNode
+        ]);
+        
+        $process = $this->createRootExecution($engine);
+        
+        $engine->debug('Created {execution}', [
+            'execution' => (string) $process
+        ]);
+        
+        foreach ($this->variables as $k => $v) {
+            $process->setVariable($k, $v);
+        }
+        
+        $engine->registerExecution($process);
+        
+        $engine->notify(new StartProcessEvent($this->startNode, $process));
+        
+        $process->execute($this->startNode);
+        
+        return $process;
+    }
+
+    protected function createRootExecution(EngineInterface $engine)
+    {
+        return new Execution(UUID::createRandom(), $engine, $this->model);
+    }
 }

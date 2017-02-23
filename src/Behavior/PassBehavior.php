@@ -20,11 +20,11 @@ use KoolKode\Process\Execution;
  */
 class PassBehavior implements BehaviorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(Execution $execution)
-	{
-		$execution->takeAll();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(Execution $execution)
+    {
+        $execution->takeAll();
+    }
 }

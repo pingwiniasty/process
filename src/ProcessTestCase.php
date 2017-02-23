@@ -27,53 +27,50 @@ use Monolog\Processor\PsrLogMessageProcessor;
  */
 abstract class ProcessTestCase extends \PHPUnit_Framework_TestCase
 {
-	protected $eventDispatcher;
-	
-	protected $expressionParser;
-	
-	protected $processEngine;
-	
-	protected function setUp()
-	{
-		parent::setUp();
-		
-		$logger = NULL;
-		
-		$logger = NULL;
-		
-		if($this->isDebug())
-		{
-			$logger = new Logger('Process');
-			$logger->pushHandler(new StreamHandler(STDERR));
-			$logger->pushProcessor(new PsrLogMessageProcessor());
-			
-			fwrite(STDERR, "\n");
-			fwrite(STDERR, sprintf("TEST CASE: %s\n", $this->getName()));
-		}
-	
-		$lexer = new ExpressionLexer();
-		$lexer->setDelimiters('#{', '}');
-	
-		$this->expressionParser = new ExpressionParser($lexer);
-		$this->eventDispatcher = new EventDispatcher();
-	
-		$this->processEngine = new TestEngine($this->eventDispatcher, new ExpressionContextFactory());
-		$this->processEngine->setLogger($logger);
-	}
-	
-	protected function isDebug()
-	{
-		return false;
-	}
-	
-	/**
-	 * Parse the given string for an expression.
-	 * 
-	 * @param string $input
-	 * @return ExpressionInterface
-	 */
-	protected function parseExp($input)
-	{
-		return $this->expressionParser->parse($input);
-	}
+    protected $eventDispatcher;
+
+    protected $expressionParser;
+
+    protected $processEngine;
+
+    protected function setUp()
+    {
+        parent::setUp();
+        
+        $logger = null;
+        
+        if ($this->isDebug()) {
+            $logger = new Logger('Process');
+            $logger->pushHandler(new StreamHandler(STDERR));
+            $logger->pushProcessor(new PsrLogMessageProcessor());
+            
+            fwrite(STDERR, "\n");
+            fwrite(STDERR, sprintf("TEST CASE: %s\n", $this->getName()));
+        }
+        
+        $lexer = new ExpressionLexer();
+        $lexer->setDelimiters('#{', '}');
+        
+        $this->expressionParser = new ExpressionParser($lexer);
+        $this->eventDispatcher = new EventDispatcher();
+        
+        $this->processEngine = new TestEngine($this->eventDispatcher, new ExpressionContextFactory());
+        $this->processEngine->setLogger($logger);
+    }
+
+    protected function isDebug()
+    {
+        return false;
+    }
+
+    /**
+     * Parse the given string for an expression.
+     * 
+     * @param string $input
+     * @return ExpressionInterface
+     */
+    protected function parseExp($input)
+    {
+        return $this->expressionParser->parse($input);
+    }
 }

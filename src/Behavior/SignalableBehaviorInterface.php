@@ -20,13 +20,13 @@ use KoolKode\Process\Execution;
  */
 interface SignalableBehaviorInterface extends BehaviorInterface
 {
-	/**
-	 * React to the given signal and payload within the context of the given execution.
-	 * 
-	 * @param Execution $execution
-	 * @param string $signal Name of the signal or NULL when no name is given.
-	 * @param array<string, mixed> $variables Signal variables.
-	 * @param array<string, mixed> $delegation Signal delegation data.
-	 */
-	public function signal(Execution $execution, $signal, array $variables = [], array $delegation = []);
+    /**
+     * React to the given signal and payload within the context of the given execution.
+     * 
+     * @param Execution $execution
+     * @param string $signal Name of the signal or null when no name is given.
+     * @param array<string, mixed> $variables Signal variables.
+     * @param array<string, mixed> $delegation Signal delegation data.
+     */
+    public function signal(Execution $execution, $signal, array $variables = [], array $delegation = []);
 }

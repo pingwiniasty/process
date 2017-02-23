@@ -22,19 +22,19 @@ use KoolKode\Process\EngineInterface;
  */
 class VoidCommand extends AbstractCommand
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function isSerializable()
-	{
-		return true;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(EngineInterface $engine)
-	{
-		// Nothing to do here... :)
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function isSerializable()
+    {
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(EngineInterface $engine)
+    {
+        // Nothing to do here... :)
+    }
 }

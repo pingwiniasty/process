@@ -21,41 +21,39 @@ use KoolKode\Expression\InspectedValue;
  */
 class ExecutionAccess implements ExpressionAccessInterface
 {
-	protected $execution;
-	
-	protected $variables = [];
-	
-	public function __construct(Execution $execution)
-	{
-		$this->execution = $execution;
-	}
-	
-	public function getExecution()
-	{
-		return $this->execution;
-	}
-	
-	public function resolveExpressionValue(InspectedValue $inspection)
-	{
-		if(array_key_exists($inspection->name, $this->variables))
-		{
-			$inspection->value = $this->variables[$inspection->name];
-			
-			return true;
-		}
-		
-		if($this->execution->hasVariable($inspection->name))
-		{
-			$inspection->value = $this->execution->getVariable($inspection->name);
-			
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public function setVariable($name, $value)
-	{
-		$this->variables[(string)$name] = $value;
-	}
+    protected $execution;
+
+    protected $variables = [];
+
+    public function __construct(Execution $execution)
+    {
+        $this->execution = $execution;
+    }
+
+    public function getExecution()
+    {
+        return $this->execution;
+    }
+
+    public function resolveExpressionValue(InspectedValue $inspection)
+    {
+        if (array_key_exists($inspection->name, $this->variables)) {
+            $inspection->value = $this->variables[$inspection->name];
+            
+            return true;
+        }
+        
+        if ($this->execution->hasVariable($inspection->name)) {
+            $inspection->value = $this->execution->getVariable($inspection->name);
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    public function setVariable($name, $value)
+    {
+        $this->variables[(string) $name] = $value;
+    }
 }

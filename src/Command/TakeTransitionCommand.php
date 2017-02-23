@@ -25,155 +25,145 @@ use KoolKode\Util\UUID;
  */
 class TakeTransitionCommand extends AbstractCommand
 {
-	/**
-	 * ID of the execution.
-	 * 
-	 * @var UUID
-	 */
-	protected $executionId;
-	
-	/**
-	 * ID of the transition to be taken out of the current node.
-	 * 
-	 * @var string
-	 */
-	protected $transitionId;
-	
-	/**
-	 * Have the execution transition into the next node.
-	 * 
-	 * @param Execution $execution
-	 * @param Transition $transition
-	 */
-	public function __construct(Execution $execution, Transition $transition = NULL)
-	{
-		$this->executionId = $execution->getId();
-		$this->transitionId = ($transition === NULL) ? NULL : (string)$transition->getId();
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 * 
-	 * @codeCoverageIgnore
-	 */
-	public function isSerializable()
-	{
-		return true;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(EngineInterface $engine)
-	{
-		$execution = $engine->findExecution($this->executionId);
-		
-		if($execution->isConcurrent())
-		{
-			if(1 === count($execution->findConcurrentExecutions()))
-			{
-				$parent = $execution->getParentExecution();
-				
-				foreach($execution->findChildExecutions() as $child)
-				{
-					$parent->registerChildExecution($child);
-				}
-				
-				$parent->setNode($execution->getNode());
-				$parent->setTransition($execution->getTransition());
-				$parent->setTimestamp(microtime(true));
-				$parent->setActive(true);
-				$parent->markModified(true);
-				
-				$engine->debug('Merged concurrent {execution} into {root}', [
-					'execution' => (string)$execution,
-					'root' => (string)$parent
-				]);
+    /**
+     * ID of the execution.
+     * 
+     * @var UUID
+     */
+    protected $executionId;
 
-				$execution->terminate(false);
-				
-				return $parent->take($this->transitionId);
-			}
-		}
-		
-		$trans = $this->findTransition($execution);
+    /**
+     * ID of the transition to be taken out of the current node.
+     * 
+     * @var string
+     */
+    protected $transitionId;
 
-		if(!$trans->isEnabled($execution))
-		{
-			if($execution->isConcurrent() && 0 == count($execution->findConcurrentExecutions()))
-			{
-				$execution->terminate(false);
-				
-				$parent = $execution->getParentExecution();
-				$parent->setTimestamp(microtime(true));
-				$parent->setActive(true);
-				$parent->terminate();
-			}
-			else
-			{
-				$execution->terminate();
-			}
-		
-			return;
-		}
-		
-		$node = $execution->getNode();
-			
-		$engine->debug('{execution} leaves {node}', [
-			'execution' => (string)$execution,
-			'node' => (string)$node
-		]);
-		$engine->notify(new LeaveNodeEvent($node, $execution));
-			
-		$engine->debug('{execution} taking {transition}', [
-			'execution' => (string)$execution,
-			'transition' => (string)$trans
-		]);
-		$engine->notify(new TakeTransitionEvent($trans, $execution));
-		
-		$execution->setTimestamp(microtime(true));
-		$execution->setTransition($trans);
-		
-		$execution->execute($execution->getProcessModel()->findNode($trans->getTo()));
-	}
-	
-	/**
-	 * Find the outgoing transition to be taken by the given execution.
-	 * 
-	 * @param Execution $execution
-	 * @throws \RuntimeException
-	 * @return Transition
-	 */
-	protected function findTransition(Execution $execution)
-	{
-		$out = (array)$execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId());
-		$trans = NULL;
-		
-		if($this->transitionId === NULL)
-		{
-			if(count($out) != 1)
-			{
-				throw new \RuntimeException(sprintf('No single outgoing transition found at node "%s"', $execution->getNode()->getId()));
-			}
-		
-			return array_pop($out);
-		}
+    /**
+     * Have the execution transition into the next node.
+     * 
+     * @param Execution $execution
+     * @param Transition $transition
+     */
+    public function __construct(Execution $execution, Transition $transition = null)
+    {
+        $this->executionId = $execution->getId();
+        $this->transitionId = ($transition === null) ? null : (string) $transition->getId();
+    }
 
-		foreach($out as $tmp)
-		{
-			if($tmp->getId() === $this->transitionId)
-			{
-				$trans = $tmp;
-				
-				break;
-			}
-		}
-	
-		if($trans === NULL)
-		{
-			throw new \RuntimeException(sprintf('Transition "%s" not connected to node "%s"', $this->transitionId, $execution->getNode()->getId()));
-		}
-		
-		return $trans;
-	}
+    /**
+     * {@inheritdoc}
+     * 
+     * @codeCoverageIgnore
+     */
+    public function isSerializable()
+    {
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(EngineInterface $engine)
+    {
+        $execution = $engine->findExecution($this->executionId);
+        
+        if ($execution->isConcurrent()) {
+            if (1 === count($execution->findConcurrentExecutions())) {
+                $parent = $execution->getParentExecution();
+                
+                foreach ($execution->findChildExecutions() as $child) {
+                    $parent->registerChildExecution($child);
+                }
+                
+                $parent->setNode($execution->getNode());
+                $parent->setTransition($execution->getTransition());
+                $parent->setTimestamp(microtime(true));
+                $parent->setActive(true);
+                $parent->markModified(true);
+                
+                $engine->debug('Merged concurrent {execution} into {root}', [
+                    'execution' => (string) $execution,
+                    'root' => (string) $parent
+                ]);
+                
+                $execution->terminate(false);
+                
+                return $parent->take($this->transitionId);
+            }
+        }
+        
+        $trans = $this->findTransition($execution);
+        
+        if (!$trans->isEnabled($execution)) {
+            if ($execution->isConcurrent() && 0 == count($execution->findConcurrentExecutions())) {
+                $execution->terminate(false);
+                
+                $parent = $execution->getParentExecution();
+                $parent->setTimestamp(microtime(true));
+                $parent->setActive(true);
+                $parent->terminate();
+            } else {
+                $execution->terminate();
+            }
+            
+            return;
+        }
+        
+        $node = $execution->getNode();
+        
+        $engine->debug('{execution} leaves {node}', [
+            'execution' => (string) $execution,
+            'node' => (string) $node
+        ]);
+        
+        $engine->notify(new LeaveNodeEvent($node, $execution));
+        
+        $engine->debug('{execution} taking {transition}', [
+            'execution' => (string) $execution,
+            'transition' => (string) $trans
+        ]);
+        
+        $engine->notify(new TakeTransitionEvent($trans, $execution));
+        
+        $execution->setTimestamp(microtime(true));
+        $execution->setTransition($trans);
+        
+        $execution->execute($execution->getProcessModel()->findNode($trans->getTo()));
+    }
+
+    /**
+     * Find the outgoing transition to be taken by the given execution.
+     * 
+     * @param Execution $execution
+     * @throws \RuntimeException
+     * @return Transition
+     */
+    protected function findTransition(Execution $execution)
+    {
+        $out = (array) $execution->getProcessModel()->findOutgoingTransitions($execution->getNode()->getId());
+        $trans = null;
+        
+        if ($this->transitionId === null) {
+            if (count($out) != 1) {
+                throw new \RuntimeException(sprintf('No single outgoing transition found at node "%s"', $execution->getNode()->getId()));
+            }
+            
+            return array_pop($out);
+        }
+        
+        foreach ($out as $tmp) {
+            if ($tmp->getId() === $this->transitionId) {
+                $trans = $tmp;
+                
+                break;
+            }
+        }
+        
+        if ($trans === null) {
+            throw new \RuntimeException(sprintf('Transition "%s" not connected to node "%s"', $this->transitionId, $execution->getNode()->getId()));
+        }
+        
+        return $trans;
+    }
 }

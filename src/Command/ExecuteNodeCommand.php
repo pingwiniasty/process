@@ -24,68 +24,69 @@ use KoolKode\Util\UUID;
  */
 class ExecuteNodeCommand extends AbstractCommand
 {
-	/**
-	 * Execution ID.
-	 * 
-	 * @var UUID
-	 */
-	protected $executionId;
-	
-	/**
-	 * Node ID (unique within the process model).
-	 * 
-	 * @var string
-	 */
-	protected $nodeId;
-	
-	/**
-	 * Have the given execution execute execute the node's behavior.
-	 * 
-	 * @param Execution $execution
-	 * @param Node $node
-	 */
-	public function __construct(Execution $execution, Node $node)
-	{
-		$this->executionId = $execution->getId();
-		$this->nodeId = (string)$node->getId();
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function isSerializable()
-	{
-		return true;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	public function execute(EngineInterface $engine)
-	{
-		$execution = $engine->findExecution($this->executionId);
-		$node = $execution->getProcessModel()->findNode($this->nodeId);
-		
-		$execution->setTimestamp(microtime(true));
-		$execution->setNode($node);
-			
-		$engine->debug('{execution} entering {node}', [
-			'execution' => (string)$execution,
-			'node' => (string)$node
-		]);
-		$engine->notify(new EnterNodeEvent($node, $execution));
-		
-		$this->executeNode($node, $execution);
-	}
-	
-	/**
-	 * Perform logic needed to actually execute the node's behavior.
-	 * 
-	 * @param Node $node
-	 * @param Execution $execution
-	 */
-	protected function executeNode(Node $node, Execution $execution)
-	{
-		$node->getBehavior()->execute($execution);
-	}
+    /**
+     * Execution ID.
+     * 
+     * @var UUID
+     */
+    protected $executionId;
+
+    /**
+     * Node ID (unique within the process model).
+     * 
+     * @var string
+     */
+    protected $nodeId;
+
+    /**
+     * Have the given execution execute execute the node's behavior.
+     * 
+     * @param Execution $execution
+     * @param Node $node
+     */
+    public function __construct(Execution $execution, Node $node)
+    {
+        $this->executionId = $execution->getId();
+        $this->nodeId = (string) $node->getId();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isSerializable()
+    {
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(EngineInterface $engine)
+    {
+        $execution = $engine->findExecution($this->executionId);
+        $node = $execution->getProcessModel()->findNode($this->nodeId);
+        
+        $execution->setTimestamp(microtime(true));
+        $execution->setNode($node);
+        
+        $engine->debug('{execution} entering {node}', [
+            'execution' => (string) $execution,
+            'node' => (string) $node
+        ]);
+        
+        $engine->notify(new EnterNodeEvent($node, $execution));
+        
+        $this->executeNode($node, $execution);
+    }
+
+    /**
+     * Perform logic needed to actually execute the node's behavior.
+     * 
+     * @param Node $node
+     * @param Execution $execution
+     */
+    protected function executeNode(Node $node, Execution $execution)
+    {
+        $node->getBehavior()->execute($execution);
+    }
 }
